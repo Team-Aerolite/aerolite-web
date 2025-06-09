@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Aerolite - Hybrid Analog-FPGA Compute Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 40px;
+            position: relative;
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.05) 0%, rgba(0, 86, 179, 0.02) 100%);
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        .slide-header {
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            padding: 20px 30px;
+            margin: -40px -40px 30px -40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 0.9em;
+            opacity: 0.7;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .slide-title {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .slide-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .content-box {
+            background: linear-gradient(135deg, #2a2a3e 0%, #3a3a5e 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(0, 123, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 123, 255, 0.3);
+            border-color: #007bff;
+        }
+
+        .content-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+        }
+
+        .box-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+
+        .box-content {
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .bullet-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .bullet-list li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 25px;
+            line-height: 1.5;
+        }
+
+        .bullet-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: #0056b3;
+            font-size: 0.8em;
+        }
+
+        .highlight-text {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .center-content {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .large-text {
+            font-size: 1.4em;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            font-weight: 600;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 86, 179, 0.05) 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+        }
+
+        .timeline-date {
+            background: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-right: 20px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .navigation.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+
+        .nav-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .slide-counter {
+            color: #007bff;
+            font-weight: 600;
+            margin: 0 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .architecture-diagram {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+            height: 300px;
+        }
+
+        .arch-component {
+            background: linear-gradient(135deg, #2a2a3e 0%, #3a3a5e 100%);
+            border: 2px solid #007bff;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .arch-component:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.3);
+        }
+
+        .arch-component .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .arch-component .title {
+            font-weight: 600;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .power-visualization {
+            display: flex;
+            justify-content: space-around;
+            align-items: end;
+            height: 300px;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+
+        .power-bar {
+            background: linear-gradient(0deg, #007bff 0%, #0056b3 100%);
+            width: 80px;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .power-bar:hover {
+            transform: scale(1.1);
+        }
+
+        .power-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            text-align: center;
+            width: 100px;
+        }
+
+        .power-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            color: #007bff;
+        }
+
+        .trl-matrix {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 3fr;
+            gap: 2px;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .trl-header {
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            padding: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .trl-cell {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .progress-indicator {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide.active .content-box,
+        .slide.active .timeline-item,
+        .slide.active .arch-component {
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 20px;
+            }
+            
+            .slide-title {
+                font-size: 1.8em;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .architecture-diagram {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <div class="slide-number">1/24</div>
+            <div class="slide-content center-content">
+                <h1 style="font-size: 3.5em; margin-bottom: 30px; text-align: center; background: linear-gradient(90deg, #007bff 0%, #0056b3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🚀 Project Aerolite</h1>
+                <h2 style="font-size: 2em; margin-bottom: 20px; text-align: center;">A Hybrid Analog-FPGA Compute Architecture</h2>
+                <p style="font-size: 1.3em; text-align: center; opacity: 0.8;">For Sustainable and Long-Lasting Small Satellite Operations</p>
+                <div style="margin-top: 50px; text-align: center;">
+                    <div style="background: linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 86, 179, 0.1) 100%); padding: 30px; border-radius: 20px; border: 2px solid rgba(0, 123, 255, 0.3);">
+                        <p style="font-size: 1.1em; font-style: italic;">"Transforming space computing through hybrid architecture innovation"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Executive Summary -->
+        <div class="slide">
+            <div class="slide-number">2/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📋 Executive Summary</h1>
+                <p class="slide-subtitle">The Challenge and Our Solution</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🎯 The Challenge</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Small satellites face critical power and volume constraints</li>
+                                <li>Current computing paradigms struggle with energy efficiency</li>
+                                <li>Limited mission duration and capabilities</li>
+                                <li>Need for sustainable space operations</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">💡 Our Innovation</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li><span class="highlight-text">Hybrid Analog-FPGA Architecture</span></li>
+                                <li>Substantial computational efficiency improvements</li>
+                                <li>Enhanced mission adaptability through reconfigurability</li>
+                                <li>Potential to repurpose "zombie" satellites</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Key Focus:</span> CubeSat-compatible backplane with specialized compiler and scheduler for the ACHIEVED competition</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Space Environment Challenges -->
+        <div class="slide">
+            <div class="slide-number">3/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🌌 The Evolving Space Environment</h1>
+                <p class="slide-subtitle">New Challenges and Demands</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">⚠️ Growing Complexity</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Proliferation of space debris</li>
+                                <li>Orbital congestion in valuable orbits</li>
+                                <li>Risk of Kessler Syndrome</li>
+                                <li>Need for longer-lasting missions</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">📈 Expanding CubeSat Utility</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Advanced sensors and RF payloads</li>
+                                <li>Data deluge requiring on-board processing</li>
+                                <li>Earth observation and communications</li>
+                                <li>Autonomous decision-making needs</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">💰 Economic Pressures</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>12U CubeSat: ~€2.5M to manufacture and launch</li>
+                                <li>Short-lived satellites = suboptimal investment</li>
+                                <li>Frequent replacements strain resources</li>
+                                <li>Need for operational sustainability</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Current Computing Limitations -->
+        <div class="slide">
+            <div class="slide-number">4/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">⚡ Current Computing Architecture Limitations</h1>
+                <p class="slide-subtitle">Bottlenecks in Traditional Systems</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🖥️ Microprocessor Limitations</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Lack specialized performance for compute-intensive tasks</li>
+                                <li>Poor power efficiency for ML/AI inference</li>
+                                <li>Limited parallel processing capabilities</li>
+                                <li>Von Neumann bottleneck</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🔧 FPGA Challenges</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Excellent for parallelizable tasks</li>
+                                <li>Still not optimal for all analog signal processing</li>
+                                <li>May not achieve theoretical peak efficiency</li>
+                                <li>Complex development for certain applications</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🔄 ADC Bottleneck</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Sensors produce analog signals naturally</li>
+                                <li>Digital conversion incurs power overhead</li>
+                                <li>Latency and circuit area penalties</li>
+                                <li>Significant contributor to power budget</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Hybrid Architecture Overview -->
+        <div class="slide">
+            <div class="slide-number">5/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🔬 Aerolite's Hybrid Architecture</h1>
+                <p class="slide-subtitle">Synergistic Analog-FPGA Integration</p>
+            </div>
+            <div class="slide-content">
+                <div class="architecture-diagram">
+                    <div class="arch-component">
+                        <div class="icon">🧮</div>
+                        <div class="title">Analog Compute</div>
+                        <div>Direct signal processing, high efficiency for specific operations</div>
+                    </div>
+                    <div class="arch-component">
+                        <div class="icon">🔗</div>
+                        <div class="title">CubeSat Backplane</div>
+                        <div>Unified platform integrating both domains</div>
+                    </div>
+                    <div class="arch-component">
+                        <div class="icon">⚙️</div>
+                        <div class="title">FPGA Control</div>
+                        <div>Digital logic, system control, orchestration</div>
+                    </div>
+                </div>
+                <div class="large-text">
+                    <p><span class="highlight-text">Core Concept:</span> Leverage analog circuitry for power-efficient operations while maintaining FPGA versatility for complex algorithms and system management.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Analog Computing Advantages -->
+        <div class="slide">
+            <div class="slide-number">6/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">⚡ Analog Computing Resurgence</h1>
+                <p class="slide-subtitle">Why Analog Makes Sense for Space</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔋 Power Efficiency</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Significantly lower power for certain computations</li>
+                                <li>More operations per watt</li>
+                                <li>Critical for extending mission duration</li>
+                                <li>Direct signal processing without ADC overhead</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🧠 Natural Processing</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Processes continuous signals naturally</li>
+                                <li>"Brain-like" computation for AI/ML</li>
+                                <li>Inherent parallelism</li>
+                                <li>Suitable for noisy space environment</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🎯 Edge AI/ML Suitability</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Image pre-processing and pattern recognition</li>
+                                <li>Feature extraction</li>
+                                <li>Matrix-vector multiplications</li>
+                                <li>Reduces downlink requirements</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: FPGA Benefits -->
+        <div class="slide">
+            <div class="slide-number">7/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🔧 FPGA: The Flexible Foundation</h1>
+                <p class="slide-subtitle">Proven Space Technology</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔄 Reconfigurability</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Post-launch algorithm updates</li>
+                                <li>Bug patches and mission adaptation</li>
+                                <li>Hardware functionality repurposing</li>
+                                <li>Extended operational lifespan</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🛡️ Radiation Tolerance</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>SRAM-based: Highly reconfigurable</li>
+                                <li>Flash-based: Balanced approach</li>
+                                <li>Antifuse-based: Radiation-immune</li>
+                                <li>Triple Modular Redundancy (TMR)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">⚙️ Custom Logic Implementation</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Tailored to specific mission tasks</li>
+                                <li>Parallel processing capabilities</li>
+                                <li>Digital signal processing acceleration</li>
+                                <li>System control and data management</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Architecture Comparison -->
+        <div class="slide">
+            <div class="slide-number">8/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📊 Architecture Comparison</h1>
+                <p class="slide-subtitle">Hybrid vs. Traditional Approaches</p>
+            </div>
+            <div class="slide-content">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>MCU-based</th>
+                            <th>Pure FPGA</th>
+                            <th>Proposed Hybrid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Power Efficiency (AI/Signal)</td>
+                            <td>Low</td>
+                            <td>Medium</td>
+                            <td><span class="highlight-text">High to Very High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Analog Signal Processing</td>
+                            <td>Low (Requires ADC)</td>
+                            <td>Low (Requires ADC)</td>
+                            <td><span class="highlight-text">High (Direct)</span></td>
+                        </tr>
+                        <tr>
+                            <td>Reconfigurability</td>
+                            <td>Low (Software only)</td>
+                            <td>Very High</td>
+                            <td><span class="highlight-text">Very High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Radiation Tolerance</td>
+                            <td>Medium</td>
+                            <td>High</td>
+                            <td><span class="highlight-text">High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Complex Control Logic</td>
+                            <td>Medium</td>
+                            <td>High</td>
+                            <td><span class="highlight-text">High</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 9: Hardware Architecture -->
+        <div class="slide">
+            <div class="slide-number">9/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🏗️ Hardware Architecture: CubeSat Backplane</h1>
+                <p class="slide-subtitle">Active Integration Platform</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔌 Standards Compliance</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>PC/104 or CubeSat Kit Bus (CSKB) compatibility</li>
+                                <li>104 pins (64 for P1, 40 for P2)</li>
+                                <li>0.600" (15.24 mm) stacking height</li>
+                                <li>Interoperability with COTS subsystems</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">📡 Signal Integrity</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Impedance matching and shielding</li>
+                                <li>Dedicated ground planes</li>
+                                <li>Analog/digital trace separation</li>
+                                <li>Noise coupling minimization</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">⚡ Power Management</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Clean, stable, isolated power rails</li>
+                                <li>Separate analog/digital domains</li>
+                                <li>Power supply noise filtering</li>
+                                <li>CubeSat voltage compatibility (3.3V, 5V)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🌡️ Thermal Management</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Thermal vias and heat spreaders</li>
+                                <li>Chassis thermal connections</li>
+                                <li>Component temperature monitoring</li>
+                                <li>Confined CubeSat volume considerations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Software Architecture -->
+        <div class="slide">
+            <div class="slide-number">10/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">💻 Software Architecture: Compiler & Scheduler</h1>
+                <p class="slide-subtitle">The Intelligence of the Hybrid System</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔍 Compiler Functions</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li><span class="highlight-text">Task Analysis:</span> Profile computational kernels</li>
+                                <li><span class="highlight-text">Hybrid Partitioning:</span> Analog vs. FPGA allocation</li>
+                                <li><span class="highlight-text">Code Generation:</span> Analog configs + HDL/binary</li>
+                                <li><span class="highlight-text">Interface Management:</span> Data transfer coordination</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">⏱️ Scheduler Functions</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li><span class="highlight-text">Dynamic Allocation:</span> Optimize for power/performance</li>
+                                <li><span class="highlight-text">Dependency Management:</span> Correct execution order</li>
+                                <li><span class="highlight-text">Adaptability:</span> Real-time condition response</li>
+                                <li><span class="highlight-text">Context Switching:</span> Multi-application support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Key Challenge:</span> Intelligent partitioning based on operation nature, parallelism potential, precision requirements, and hardware characteristics</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Software Challenges -->
+        <div class="slide">
+            <div class="slide-number">11/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🎯 Key Software Challenges</h1>
+                <p class="slide-subtitle">Managing Hybrid System Complexity</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔄 Data Movement & Coherence</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Efficient analog-digital domain transfers</li>
+                                <li>Data coherence maintenance</li>
+                                <li>Bottleneck avoidance</li>
+                                <li>Shared data management</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">⚠️ Analog Non-Idealities</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li><span class="highlight-text">Calibration:</span> Component drift compensation</li>
+                                <li><span class="highlight-text">Error Correction:</span> Digital monitoring/correction</li>
+                                <li><span class="highlight-text">Algorithm Co-design:</span> Robust to imperfections</li>
+                                <li><span class="highlight-text">Environmental Effects:</span> Noise and variation handling</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">📉 ADC Overhead Reduction</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Direct analog processing identification</li>
+                                <li>ADC-less Compute-in-Memory techniques</li>
+                                <li>Precision requirement reduction</li>
+                                <li>Specialized quantization frameworks</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🎨 Programming Abstractions</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>High-level programming model</li>
+                                <li>Hardware expertise abstraction</li>
+                                <li>Application developer accessibility</li>
+                                <li>Effective partitioning expression</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Earth Observation Application -->
+        <div class="slide">
+            <div class="slide-number">12/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🌍 Application: Enhanced Earth Observation</h1>
+                <p class="slide-subtitle">Intelligent On-Board Processing</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">📸 Traditional Approach</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Large volumes of raw imagery downlinked</li>
+                                <li>6 hours over two ground stations</li>
+                                <li>High power consumption for transmission</li>
+                                <li>Limited ground station contact time</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🧠 Aerolite Approach</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li><span class="highlight-text">Analog:</span> Rapid feature extraction & quality assessment</li>
+                                <li><span class="highlight-text">FPGA:</span> Complex analysis & decision-making</li>
+                                <li><span class="highlight-text">Smart Filtering:</span> Discard irrelevant images</li>
+                                <li><span class="highlight-text">Data Reduction:</span> Compression & key features</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Result:</span> 50% image reduction + processing → 1-hour downlink window</p>
+                    <div style="margin-top: 20px; background: linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 86, 179, 0.1) 100%); padding: 20px; border-radius: 15px;">
+                        <p><strong>Benefits:</strong> Lower power consumption, extended operational life, more frequent contact capability, enhanced monitoring responsiveness</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Reconfigurability Applications -->
+        <div class="slide">
+            <div class="slide-number">13/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🔄 Pioneering Reconfigurability</h1>
+                <p class="slide-subtitle">Extended Mission Viability</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">♻️ Onboard Resource Reuse</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Repurpose idle computational blocks</li>
+                                <li>Transform single-purpose elements into flexible pools</li>
+                                <li>Dynamic task reassignment</li>
+                                <li>Extended spacecraft useful life</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🧟 "Zombie Satellite" Concept</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Interface with partially functional satellites</li>
+                                <li>Utilize as compute nodes or data relays</li>
+                                <li>Access still-functioning sensors</li>
+                                <li>Reduce space debris, extend asset value</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Vision:</span> Distributed, resilient, opportunistically evolving computational infrastructure in orbit</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Agile Cryptography -->
+        <div class="slide">
+            <div class="slide-number">14/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🔐 Agile Cryptography for Future Security</h1>
+                <p class="slide-subtitle">Quantum-Resistant Communications</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">⚠️ The Quantum Threat</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Fault-tolerant quantum computers threaten RSA/ECC</li>
+                                <li>"Harvest now, decrypt later" strategy</li>
+                                <li>Fixed-function ASICs become vulnerable</li>
+                                <li>Physical upgrades impossible in space</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🛡️ Aerolite Solution</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li><span class="highlight-text">FPGA Reconfigurability:</span> Algorithm updates in-field</li>
+                                <li><span class="highlight-text">Post-Quantum Crypto:</span> New standards deployment</li>
+                                <li><span class="highlight-text">Dynamic Security:</span> Evolving threat response</li>
+                                <li><span class="highlight-text">Analog Enhancement:</span> Physical layer security</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Transformation:</span> From static security model to dynamic, adaptable security architecture</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Technology Readiness Assessment -->
+        <div class="slide">
+            <div class="slide-number">15/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📊 Technology Readiness Level (TRL) Assessment</h1>
+                <p class="slide-subtitle">Foundation Technologies are Mature</p>
+            </div>
+            <div class="slide-content">
+                <div class="trl-matrix">
+                    <div class="trl-header">Component</div>
+                    <div class="trl-header">Current TRL</div>
+                    <div class="trl-header">Target TRL</div>
+                    <div class="trl-header">Key Development Focus</div>
+                    
+                    <div class="trl-cell">Space-Grade FPGA</div>
+                    <div class="trl-cell"><span class="highlight-text">7-9</span></div>
+                    <div class="trl-cell">7-9</div>
+                    <div class="trl-cell">Selection & radiation mitigation</div>
+                    
+                    <div class="trl-cell">Analog Compute Elements</div>
+                    <div class="trl-cell">4-6</div>
+                    <div class="trl-cell"><span class="highlight-text">5-6</span></div>
+                    <div class="trl-cell">Space-suitable design & FPGA interface</div>
+                    
+                    <div class="trl-cell">CubeSat Backplane Standards</div>
+                    <div class="trl-cell"><span class="highlight-text">7-9</span></div>
+                    <div class="trl-cell">7-9</div>
+                    <div class="trl-cell">Mature PC/104 & CSKB standards</div>
+                    
+                    <div class="trl-cell">Hybrid CubeSat Backplane</div>
+                    <div class="trl-cell">3-4</div>
+                    <div class="trl-cell"><span class="highlight-text">5</span></div>
+                    <div class="trl-cell">Signal integrity & thermal management</div>
+                    
+                    <div class="trl-cell">Hybrid Task Compiler</div>
+                    <div class="trl-cell">2-3</div>
+                    <div class="trl-cell"><span class="highlight-text">4</span></div>
+                    <div class="trl-cell">Task partitioning algorithms</div>
+                    
+                    <div class="trl-cell">Hybrid Task Scheduler</div>
+                    <div class="trl-cell">2-3</div>
+                    <div class="trl-cell"><span class="highlight-text">4</span></div>
+                    <div class="trl-cell">Dynamic resource allocation</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Power Consumption Analysis -->
+        <div class="slide">
+            <div class="slide-number">16/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">⚡ Power Consumption Analysis</h1>
+                <p class="slide-subtitle">System Power Budget Breakdown</p>
+            </div>
+            <div class="slide-content">
+                <div class="power-visualization">
+                    <div class="power-bar" style="height: 200px;">
+                        <div class="power-value">24W</div>
+                        <div class="power-label">FPGA + AI<br>(Peak)</div>
+                    </div>
+                    <div class="power-bar" style="height: 120px;">
+                        <div class="power-value">6W</div>
+                        <div class="power-label">Rad Hard<br>CPU</div>
+                    </div>
+                    <div class="power-bar" style="height: 100px;">
+                        <div class="power-value">12W</div>
+                        <div class="power-label">Analog<br>Modules</div>
+                    </div>
+                    <div class="power-bar" style="height: 60px;">
+                        <div class="power-value">3W</div>
+                        <div class="power-label">RF<br>System</div>
+                    </div>
+                    <div class="power-bar" style="height: 60px;">
+                        <div class="power-value">3W</div>
+                        <div class="power-label">Memory<br>Systems</div>
+                    </div>
+                    <div class="power-bar" style="height: 40px;">
+                        <div class="power-value">2W</div>
+                        <div class="power-label">Power<br>Management</div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Total System Power: 39-50W</span> (depending on operational mode)</p>
+                    <p style="margin-top: 15px;">Dynamic scaling based on computational workload and mission phase</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: ACHIEVED Timeline Phase 1 -->
+        <div class="slide">
+            <div class="slide-number">17/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📅 ACHIEVED Timeline: Phase 1</h1>
+                <p class="slide-subtitle">Research and Preliminary Design (Target: Review 2 - June)</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔬 Research Activities</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Optimal analog compute kernels identification</li>
+                                <li>Target applications analysis (image processing, AI)</li>
+                                <li>Detailed system architecture definition</li>
+                                <li>Performance modeling and simulation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🏗️ Design Activities</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Preliminary backplane schematic & layout</li>
+                                <li>FPGA and analog component selection</li>
+                                <li>Compiler framework conceptual design</li>
+                                <li>Scheduler algorithmic framework</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Major Deliverables:</span></p>
+                    <ul class="bullet-list" style="text-align: left; max-width: 800px; margin: 20px auto;">
+                        <li>Comprehensive System Design Document</li>
+                        <li>Preliminary Backplane Design Package</li>
+                        <li>Compiler and Scheduler Concept Document</li>
+                        <li>Simulation Results and Performance Estimates</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: ACHIEVED Timeline Phase 2 -->
+        <div class="slide">
+            <div class="slide-number">18/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📅 ACHIEVED Timeline: Phase 2</h1>
+                <p class="slide-subtitle">Design Enhancement and Prototyping (Target: Review 3 - August)</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔧 Hardware Development</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Backplane design refinement</li>
+                                <li>First prototype fabrication and assembly</li>
+                                <li>Component bring-up and testing</li>
+                                <li>Backplane integrity validation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">💻 Software Development</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Alpha compiler development</li>
+                                <li>Basic task partitioning implementation</li>
+                                <li>Alpha scheduler with runtime management</li>
+                                <li>Test benches and software drivers</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Major Deliverables:</span></p>
+                    <ul class="bullet-list" style="text-align: left; max-width: 800px; margin: 20px auto;">
+                        <li>Fabricated Backplane Prototype (Rev A)</li>
+                        <li>Alpha Versions of Compiler and Scheduler</li>
+                        <li>Component Test Reports</li>
+                        <li>Preliminary Integration Plan</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: ACHIEVED Timeline Phase 3 -->
+        <div class="slide">
+            <div class="slide-number">19/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📅 ACHIEVED Timeline: Phase 3</h1>
+                <p class="slide-subtitle">Demonstration and Validation (Target: Grand Final - September)</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔗 System Integration</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Backplane + FPGA + analog elements integration</li>
+                                <li>End-to-end system functionality testing</li>
+                                <li>Extensive debugging and optimization</li>
+                                <li>Performance characterization</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🎯 Demonstration Applications</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Accelerated image filtering showcase</li>
+                                <li>Reconfigurable task demonstration</li>
+                                <li>Compiler and scheduler validation</li>
+                                <li>Power/performance benchmarking</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Major Deliverables:</span></p>
+                    <ul class="bullet-list" style="text-align: left; max-width: 800px; margin: 20px auto;">
+                        <li>Functioning Integrated Prototype</li>
+                        <li>Live Demonstration of Key Advantages</li>
+                        <li>Performance Benchmark Report</li>
+                        <li>Final Project Report and Presentation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 20: Post-Competition Roadmap -->
+        <div class="slide">
+            <div class="slide-number">20/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🚀 Post-Competition Roadmap</h1>
+                <p class="slide-subtitle">From Lab to Space</p>
+            </div>
+            <div class="slide-content">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">Phase 1</div>
+                        <div class="timeline-content">
+                            <h3>Design Refinement</h3>
+                            <p>Incorporate PoC lessons, enhance robustness and manufacturability</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Phase 2</div>
+                        <div class="timeline-content">
+                            <h3>Performance Testing</h3>
+                            <p>Comprehensive characterization across applications and environmental conditions</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Phase 3</div>
+                        <div class="timeline-content">
+                            <h3>Environmental Testing</h3>
+                            <p>Thermal cycling, vibration, radiation testing for space qualification</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Phase 4</div>
+                        <div class="timeline-content">
+                            <h3>High-Altitude Balloon</h3>
+                            <p>Near-space environment testing as cost-effective intermediate step</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Phase 5</div>
+                        <div class="timeline-content">
+                            <h3>Flight Qualification</h3>
+                            <p>Full space qualification and mission integration</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21: Team Capabilities -->
+        <div class="slide">
+            <div class="slide-number">21/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">👥 Team Aerolite Capabilities</h1>
+                <p class="slide-subtitle">Experience and Resources</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🎓 Core Expertise</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Analog circuit design experience</li>
+                                <li>FPGA programming (Verilog/VHDL)</li>
+                                <li>Embedded software development</li>
+                                <li>Small satellite systems engineering</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🛠️ Available Resources</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Development boards and prototyping tools</li>
+                                <li>Simulation software access</li>
+                                <li>Laboratory test equipment</li>
+                                <li>University fabrication facilities</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🤝 Partnership Strategy</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Collaboration with foreign institutes</li>
+                                <li>Industry partnership opportunities</li>
+                                <li>Access to specialized testing facilities</li>
+                                <li>Flight opportunity pathways</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🎯 ACHIEVED Objectives</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Demonstrate computational efficiency gains</li>
+                                <li>Validate reconfigurability advantages</li>
+                                <li>Prototype functional integration</li>
+                                <li>Establish technology feasibility</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 22: Market Impact -->
+        <div class="slide">
+            <div class="slide-number">22/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">📈 Market Impact and Applications</h1>
+                <p class="slide-subtitle">Transforming Small Satellite Capabilities</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🌍 Earth Observation</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Real-time change detection</li>
+                                <li>Disaster response acceleration</li>
+                                <li>Environmental monitoring enhancement</li>
+                                <li>Resource management optimization</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">📡 Communications</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>IoT constellation efficiency</li>
+                                <li>Adaptive signal processing</li>
+                                <li>Network optimization</li>
+                                <li>Interference mitigation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🔬 Scientific Research</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>On-orbit data analysis</li>
+                                <li>Autonomous science prioritization</li>
+                                <li>Extended mission capabilities</li>
+                                <li>Multi-instrument coordination</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🛡️ Space Domain Awareness</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Real-time object tracking</li>
+                                <li>Collision avoidance systems</li>
+                                <li>Debris characterization</li>
+                                <li>Situational awareness enhancement</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23: Sustainability Impact -->
+        <div class="slide">
+            <div class="slide-number">23/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">♻️ Sustainability Impact</h1>
+                <p class="slide-subtitle">Contributing to Responsible Space Operations</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🔋 Energy Efficiency</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Significant power consumption reduction</li>
+                                <li>Extended mission lifetime</li>
+                                <li>Reduced battery requirements</li>
+                                <li>Lower heat generation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🚀 Launch Efficiency</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Fewer replacement missions needed</li>
+                                <li>Reduced launch frequency</li>
+                                <li>Lower space debris generation</li>
+                                <li>Optimal orbital resource utilization</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">♻️ Asset Reuse</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>"Zombie satellite" repurposing</li>
+                                <li>Hardware reconfiguration capabilities</li>
+                                <li>Multi-mission satellite utilization</li>
+                                <li>Distributed orbital infrastructure</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">💰 Economic Benefits</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Lower total cost of ownership</li>
+                                <li>Improved mission ROI</li>
+                                <li>Reduced infrastructure demands</li>
+                                <li>Enhanced constellation efficiency</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content">
+                    <p><span class="highlight-text">Vision:</span> A more responsible and efficient utilization of the finite orbital environment</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 24: Conclusion and Call to Action -->
+        <div class="slide">
+            <div class="slide-number">24/24</div>
+            <div class="slide-header">
+                <h1 class="slide-title">🎯 Conclusion and Call to Action</h1>
+                <p class="slide-subtitle">Transforming the Future of Space Computing</p>
+            </div>
+            <div class="slide-content">
+                <div class="content-grid">
+                    <div class="content-box">
+                        <div class="box-title">🌟 Key Innovations</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Hybrid Analog-FPGA architecture</li>
+                                <li>Intelligent task partitioning</li>
+                                <li>Dynamic reconfigurability</li>
+                                <li>Sustainable space operations</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">📊 Expected Benefits</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Substantial power efficiency gains</li>
+                                <li>Enhanced on-board data processing</li>
+                                <li>Extended mission lifetimes</li>
+                                <li>Quantum-resistant security</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🚀 Transformative Potential</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Redefined small satellite capabilities</li>
+                                <li>Novel "zombie satellite" utilization</li>
+                                <li>Agile cryptography implementation</li>
+                                <li>Responsible orbital resource use</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="content-box">
+                        <div class="box-title">🤝 Partnership Opportunities</div>
+                        <div class="box-content">
+                            <ul class="bullet-list">
+                                <li>Technology development collaboration</li>
+                                <li>Flight opportunity partnerships</li>
+                                <li>Commercial deployment pathways</li>
+                                <li>Research and validation support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="large-text center-content" style="margin-top: 30px;">
+                    <div style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); padding: 30px; border-radius: 20px; color: white;">
+                        <p style="font-size: 1.4em; font-weight: 700; margin-bottom: 15px;">🚀 Ready to Transform Space Computing?</p>
+                        <p style="font-size: 1.1em;">Join Team Aerolite in revolutionizing sustainable satellite operations through hybrid analog-FPGA innovation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+        <span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">24</span></span>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = index + 1;
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            const newIndex = currentSlideIndex + direction;
+            if (newIndex >= 0 && newIndex < totalSlides) {
+                currentSlideIndex = newIndex;
+                showSlide(currentSlideIndex);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                changeSlide(1);
+            } else if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            } else if (event.key === 'Home') {
+                currentSlideIndex = 0;
+                showSlide(currentSlideIndex);
+            } else if (event.key === 'End') {
+                currentSlideIndex = totalSlides - 1;
+                showSlide(currentSlideIndex);
+            }
+        });
+
+        // Initialize
+        showSlide(0);
+
+        // Add mouse hover behavior for navigation
+        const navigation = document.querySelector('.navigation');
+        let mouseTimeout;
+
+        document.addEventListener('mousemove', function(event) {
+            // Show navigation
+            navigation.classList.add('visible');
+            
+            // Clear any existing timeout
+            clearTimeout(mouseTimeout);
+            
+            // Set new timeout to hide navigation
+            mouseTimeout = setTimeout(() => {
+                navigation.classList.remove('visible');
+            }, 2000); // Hide after 1 second of no mouse movement
+        });
+
+        // Add progress indicator to each slide
+        slides.forEach((slide, index) => {
+            const progressIndicator = document.createElement('div');
+            progressIndicator.className = 'progress-indicator';
+            progressIndicator.innerHTML = `<div class="progress-bar" style="width: ${((index + 1) / totalSlides) * 100}%"></div>`;
+            slide.appendChild(progressIndicator);
+        });
+
+
+
+        // Touch/swipe support for mobile
+        let startX = null;
+        let startY = null;
+
+        document.addEventListener('touchstart', function(event) {
+            startX = event.touches[0].clientX;
+            startY = event.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', function(event) {
+            if (startX === null || startY === null) return;
+            
+            const endX = event.changedTouches[0].clientX;
+            const endY = event.changedTouches[0].clientY;
+            
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            
+            // Check if horizontal swipe is longer than vertical
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 50) {
+                    changeSlide(-1); // Swipe right -> previous slide
+                } else if (deltaX < -50) {
+                    changeSlide(1); // Swipe left -> next slide
+                }
+            }
+            
+            startX = null;
+            startY = null;
+        });
+
+        // Add slide thumbnails/overview (optional)
+        function createSlideOverview() {
+            const overview = document.createElement('div');
+            overview.className = 'slide-overview';
+            overview.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                display: none;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                z-index: 1000;
+                overflow-y: auto;
+            `;
+            
+            slides.forEach((slide, index) => {
+                const thumbnail = document.createElement('div');
+                thumbnail.style.cssText = `
+                    width: 200px;
+                    height: 150px;
+                    margin: 10px;
+                    background: linear-gradient(135deg, #2a2a3e 0%, #3a3a5e 100%);
+                    border: 2px solid ${index === currentSlideIndex ? '#007bff' : '#666'};
+                    border-radius: 10px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 0.8em;
+                    text-align: center;
+                    transition: all 0.3s ease;
+                `;
+                
+                const title = slide.querySelector('.slide-title');
+                thumbnail.textContent = title ? title.textContent : `Slide ${index + 1}`;
+                
+                thumbnail.onclick = () => {
+                    currentSlideIndex = index;
+                    showSlide(currentSlideIndex);
+                    overview.style.display = 'none';
+                };
+                
+                thumbnail.onmouseover = () => {
+                    thumbnail.style.transform = 'scale(1.05)';
+                    thumbnail.style.borderColor = '#007bff';
+                };
+                
+                thumbnail.onmouseout = () => {
+                    thumbnail.style.transform = 'scale(1)';
+                    thumbnail.style.borderColor = index === currentSlideIndex ? '#007bff' : '#666';
+                };
+                
+                overview.appendChild(thumbnail);
+            });
+            
+            // Close button
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '✕ Close';
+            closeBtn.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-weight: 600;
+            `;
+            closeBtn.onclick = () => overview.style.display = 'none';
+            overview.appendChild(closeBtn);
+            
+            document.body.appendChild(overview);
+            
+            return overview;
+        }
+
+        const slideOverview = createSlideOverview();
+
+        // Add overview button
+        const overviewBtn = document.createElement('button');
+        overviewBtn.className = 'nav-btn';
+        overviewBtn.textContent = '⊞ Overview';
+        overviewBtn.onclick = () => slideOverview.style.display = 'flex';
+        document.querySelector('.navigation').appendChild(overviewBtn);
+
+        // Add escape key to close overview
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                slideOverview.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

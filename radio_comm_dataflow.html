@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Communication Data Flow</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+        
+        #diagram {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            background: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .component {
+            position: absolute;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .component:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .rf-comm { background: linear-gradient(135deg, #16a085, #2ecc71); }
+        .antenna { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .microcontroller { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .interface { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .sensors { background: linear-gradient(135deg, #3498db, #5dade2); }
+        .power { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        
+        .data-flow {
+            position: absolute;
+            z-index: 5;
+        }
+        
+        .flow-line {
+            stroke: #e74c3c;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 10,5;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .flow-line.active {
+            opacity: 1;
+            animation: dash 2s linear infinite;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -15;
+            }
+        }
+        
+        .flow-arrow {
+            fill: #e74c3c;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .flow-arrow.active {
+            opacity: 1;
+            animation: pulse 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+        
+        .data-packet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 15;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.7);
+        }
+        
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 12px;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(44, 62, 80, 0.95);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .info-panel.show {
+            opacity: 1;
+        }
+        
+        .step-indicator {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Radio Communication Data Flow Visualization</h1>
+        
+        <div class="controls">
+            <button class="btn" onclick="showDataFlow('tx')">Transmit Data Flow</button>
+            <button class="btn" onclick="showDataFlow('rx')">Receive Data Flow</button>
+            <button class="btn" onclick="showDataFlow('bidirectional')">Bidirectional Flow</button>
+            <button class="btn" onclick="resetFlow()">Reset</button>
+        </div>
+        
+        <div id="diagram">
+            <!-- Components -->
+            <div class="component antenna" style="left: 50px; top: 100px; width: 100px; height: 150px;">
+                Antenna<br><small>RF In/Out</small>
+            </div>
+            
+            <div class="component rf-comm" style="left: 180px; top: 120px; width: 120px; height: 110px;">
+                Radio<br>(SX1272)<br><small>RF Communication</small>
+            </div>
+            
+            <div class="component interface" style="left: 50px; top: 280px; width: 100px; height: 60px;">
+                SPI Interface<br><small>P5</small>
+            </div>
+            
+            <div class="component microcontroller" style="left: 350px; top: 200px; width: 150px; height: 100px;">
+                Microcontroller<br>ATMEGA328
+            </div>
+            
+            <div class="component interface" style="left: 50px; top: 360px; width: 100px; height: 60px;">
+                I2C Interface<br><small>P9</small>
+            </div>
+            
+            <div class="component interface" style="left: 50px; top: 440px; width: 100px; height: 60px;">
+                UART Interface<br><small>P7</small>
+            </div>
+            
+            <div class="component sensors" style="left: 550px; top: 80px; width: 200px; height: 180px;">
+                Digital Sensors<br><small>Magnetometer<br>Temperature<br>Accelerometer<br>Thermopile</small>
+            </div>
+            
+            <div class="component sensors" style="left: 550px; top: 280px; width: 200px; height: 120px;">
+                Analog Sensors<br><small>Solar Panel Voltmeter<br>Capacitive Sensor</small>
+            </div>
+            
+            <div class="component power" style="left: 350px; top: 80px; width: 120px; height: 100px;">
+                Power<br><small>Solar Panel<br>PMIC</small>
+            </div>
+            
+            <!-- SVG for data flow lines -->
+            <svg class="data-flow" width="100%" height="100%">
+                <!-- Transmit flow paths -->
+                <path id="sensors-to-mcu" class="flow-line" d="M 550 170 L 500 250"/>
+                <path id="mcu-to-spi" class="flow-line" d="M 350 250 L 150 310"/>
+                <path id="spi-to-radio" class="flow-line" d="M 150 310 L 240 230"/>
+                <path id="radio-to-antenna" class="flow-line" d="M 180 175 L 150 175"/>
+                <path id="antenna-rf-out" class="flow-line" d="M 50 150 L 20 120"/>
+                
+                <!-- Receive flow paths -->
+                <path id="antenna-rf-in" class="flow-line" d="M 50 200 L 20 230"/>
+                <path id="antenna-to-radio" class="flow-line" d="M 150 200 L 180 200"/>
+                <path id="radio-to-spi-rx" class="flow-line" d="M 240 230 L 150 280"/>
+                <path id="spi-to-mcu-rx" class="flow-line" d="M 150 280 L 350 240"/>
+                <path id="mcu-to-interfaces" class="flow-line" d="M 350 270 L 150 390"/>
+                
+                <!-- Arrows -->
+                <polygon id="arrow1" class="flow-arrow" points="495,245 505,250 495,255"/>
+                <polygon id="arrow2" class="flow-arrow" points="155,305 145,310 155,315"/>
+                <polygon id="arrow3" class="flow-arrow" points="185,230 175,225 185,235"/>
+                <polygon id="arrow4" class="flow-arrow" points="155,175 145,170 155,180"/>
+                <polygon id="arrow5" class="flow-arrow" points="25,125 15,120 25,130"/>
+                
+                <!-- Receive arrows -->
+                <polygon id="arrow6" class="flow-arrow" points="25,225 15,230 25,235"/>
+                <polygon id="arrow7" class="flow-arrow" points="175,200 185,195 175,205"/>
+                <polygon id="arrow8" class="flow-arrow" points="155,285 145,280 155,290"/>
+                <polygon id="arrow9" class="flow-arrow" points="355,245 345,240 355,250"/>
+                <polygon id="arrow10" class="flow-arrow" points="155,385 145,390 155,395"/>
+            </svg>
+            
+            <!-- Data packets -->
+            <div class="data-packet" id="packet1"></div>
+            <div class="data-packet" id="packet2"></div>
+            <div class="data-packet" id="packet3"></div>
+            
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #16a085, #2ecc71);"></div>
+                    RF Communication
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #3498db, #2980b9);"></div>
+                    Antenna/Sensors
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);"></div>
+                    Microcontroller
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f39c12, #e67e22);"></div>
+                    Interfaces
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    Data Flow
+                </div>
+            </div>
+            
+            <!-- Info panel -->
+            <div class="info-panel" id="infoPanel">
+                <div id="infoText"></div>
+            </div>
+        </div>
+        
+        <div class="step-indicator" id="stepIndicator"></div>
+    </div>
+
+    <script>
+        let currentFlow = '';
+        let animationRunning = false;
+        
+        const flowDescriptions = {
+            tx: {
+                title: "Transmit Data Flow",
+                steps: [
+                    "1. Sensors collect environmental data",
+                    "2. Data sent to microcontroller via I2C/analog pins",
+                    "3. Microcontroller processes and formats data",
+                    "4. Data transmitted to radio module via SPI",
+                    "5. Radio module modulates and transmits via antenna"
+                ]
+            },
+            rx: {
+                title: "Receive Data Flow", 
+                steps: [
+                    "1. Antenna receives RF signals",
+                    "2. Radio module demodulates incoming signals",
+                    "3. Processed data sent to microcontroller via SPI",
+                    "4. Microcontroller interprets received commands",
+                    "5. Commands executed via UART/I2C interfaces"
+                ]
+            },
+            bidirectional: {
+                title: "Bidirectional Communication",
+                steps: [
+                    "1. System operates in full-duplex mode",
+                    "2. Simultaneous transmit and receive capability",
+                    "3. Real-time sensor data uplink",
+                    "4. Command and control downlink",
+                    "5. Continuous two-way data exchange"
+                ]
+            }
+        };
+        
+        function showDataFlow(type) {
+            if (animationRunning) return;
+            
+            resetFlow();
+            currentFlow = type;
+            animationRunning = true;
+            
+            // Update active button
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show info panel
+            const infoPanel = document.getElementById('infoPanel');
+            const infoText = document.getElementById('infoText');
+            const stepIndicator = document.getElementById('stepIndicator');
+            
+            infoText.innerHTML = `<h3>${flowDescriptions[type].title}</h3>` + 
+                               flowDescriptions[type].steps.map(step => `<p>${step}</p>`).join('');
+            infoPanel.classList.add('show');
+            
+            if (type === 'tx') {
+                animateTransmitFlow();
+            } else if (type === 'rx') {
+                animateReceiveFlow();
+            } else if (type === 'bidirectional') {
+                animateBidirectionalFlow();
+            }
+        }
+        
+        function animateTransmitFlow() {
+            const sequence = [
+                { elements: ['sensors-to-mcu', 'arrow1'], delay: 0 },
+                { elements: ['mcu-to-spi', 'arrow2'], delay: 800 },
+                { elements: ['spi-to-radio', 'arrow3'], delay: 1600 },
+                { elements: ['radio-to-antenna', 'arrow4'], delay: 2400 },
+                { elements: ['antenna-rf-out', 'arrow5'], delay: 3200 }
+            ];
+            
+            animateSequence(sequence, () => {
+                setTimeout(() => {
+                    if (currentFlow === 'tx') animateTransmitFlow();
+                }, 1000);
+            });
+        }
+        
+        function animateReceiveFlow() {
+            const sequence = [
+                { elements: ['antenna-rf-in', 'arrow6'], delay: 0 },
+                { elements: ['antenna-to-radio', 'arrow7'], delay: 800 },
+                { elements: ['radio-to-spi-rx', 'arrow8'], delay: 1600 },
+                { elements: ['spi-to-mcu-rx', 'arrow9'], delay: 2400 },
+                { elements: ['mcu-to-interfaces', 'arrow10'], delay: 3200 }
+            ];
+            
+            animateSequence(sequence, () => {
+                setTimeout(() => {
+                    if (currentFlow === 'rx') animateReceiveFlow();
+                }, 1000);
+            });
+        }
+        
+        function animateBidirectionalFlow() {
+            // Animate both flows simultaneously
+            const txSequence = [
+                { elements: ['sensors-to-mcu', 'arrow1'], delay: 0 },
+                { elements: ['mcu-to-spi', 'arrow2'], delay: 400 },
+                { elements: ['spi-to-radio', 'arrow3'], delay: 800 },
+                { elements: ['radio-to-antenna', 'arrow4'], delay: 1200 },
+                { elements: ['antenna-rf-out', 'arrow5'], delay: 1600 }
+            ];
+            
+            const rxSequence = [
+                { elements: ['antenna-rf-in', 'arrow6'], delay: 200 },
+                { elements: ['antenna-to-radio', 'arrow7'], delay: 600 },
+                { elements: ['radio-to-spi-rx', 'arrow8'], delay: 1000 },
+                { elements: ['spi-to-mcu-rx', 'arrow9'], delay: 1400 },
+                { elements: ['mcu-to-interfaces', 'arrow10'], delay: 1800 }
+            ];
+            
+            animateSequence(txSequence);
+            animateSequence(rxSequence, () => {
+                setTimeout(() => {
+                    if (currentFlow === 'bidirectional') animateBidirectionalFlow();
+                }, 1000);
+            });
+        }
+        
+        function animateSequence(sequence, callback) {
+            sequence.forEach(step => {
+                setTimeout(() => {
+                    step.elements.forEach(elementId => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.classList.add('active');
+                            setTimeout(() => {
+                                element.classList.remove('active');
+                            }, 600);
+                        }
+                    });
+                }, step.delay);
+            });
+            
+            if (callback) {
+                setTimeout(callback, Math.max(...sequence.map(s => s.delay)) + 800);
+            }
+        }
+        
+        function resetFlow() {
+            animationRunning = false;
+            currentFlow = '';
+            
+            // Remove active classes
+            document.querySelectorAll('.flow-line, .flow-arrow').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Hide info panel
+            document.getElementById('infoPanel').classList.remove('show');
+            document.getElementById('stepIndicator').textContent = '';
+        }
+        
+        // Add click events to components for additional interactivity
+        document.querySelectorAll('.component').forEach(component => {
+            component.addEventListener('click', function() {
+                const info = this.textContent.trim();
+                document.getElementById('stepIndicator').textContent = `Selected: ${info}`;
+            });
+        });
+    </script>
+</body>
+</html>

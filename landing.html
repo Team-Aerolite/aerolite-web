@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Analog Computer - Architecture & Mission Overview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #3b82f6;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Architecture Diagram */
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .component-box {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #3b82f6;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+            border-color: #60a5fa;
+        }
+
+        .component-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .component-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #3b82f6;
+        }
+
+        .component-details {
+            font-size: 0.95em;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .component-details li {
+            margin-bottom: 8px;
+            list-style: none;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .component-details li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: #60a5fa;
+            font-size: 0.8em;
+        }
+
+        /* Mission Phases */
+        .mission-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .phase-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr 2fr;
+            gap: 20px;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(96, 165, 250, 0.05) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #3b82f6;
+            transition: all 0.3s ease;
+        }
+
+        .phase-row:hover {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, rgba(96, 165, 250, 0.1) 100%);
+            transform: translateX(10px);
+        }
+
+        .phase-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .phase-title {
+            font-weight: 600;
+            color: #3b82f6;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .phase-duration {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .phase-objective {
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .phase-operations {
+            font-size: 0.9em;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* Power Consumption */
+        .power-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .power-component {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .power-component:hover {
+            border-color: #3b82f6;
+            transform: scale(1.05);
+        }
+
+        .profile-picture {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 3px solid #3b82f6;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .profile-picture img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .power-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 10px;
+        }
+
+        .power-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Connection Lines */
+        .connection-diagram {
+            position: relative;
+            height: 400px;
+            margin: 40px 0;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .central-node {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .satellite-nodes {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border: 3px solid #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .satellite-nodes:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
+        }
+
+        .node-1 { top: 50px; left: 50%; transform: translateX(-50%); }
+        .node-2 { top: 50%; right: 50px; transform: translateY(-50%); }
+        .node-3 { bottom: 50px; left: 50%; transform: translateX(-50%); }
+        .node-4 { top: 50%; left: 50px; transform: translateY(-50%); }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .phase-row {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .connection-diagram {
+                height: 300px;
+            }
+            
+            .satellite-nodes {
+                width: 60px;
+                height: 60px;
+                font-size: 0.8em;
+            }
+            
+            .central-node {
+                width: 100px;
+                height: 100px;
+                font-size: 0.9em;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.3);
+            margin-top: 50px;
+            border-radius: 15px;
+            border-top: 3px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><img src="logo.png" alt="Aerolite Logo" style="height: 2.5em; width: 2.5em; border-radius: 50%; vertical-align: middle; margin-right: 15px; object-fit: cover;"> Project Aerolite - Hybrid Analog Computer</h1>
+        <p>Advanced Parallel Computing Architecture for CubeSat Applications</p>
+    </div>
+
+    <div class="container">
+        <!-- System Architecture -->
+        <div class="section">
+            <h2 class="section-title">🏗️ System Architecture Overview</h2>
+            <div class="architecture-grid">
+                <div class="component-box">
+                    <div class="component-title">🔧 Control Section</div>
+                    <div class="component-details">
+                        <ul>
+                            <li>Radiation hardened for deep space (100krad TID)</li>
+                            <li>No Single Event Latch-ups (SEL) up to >100 MeV</li>
+                            <li>Cold redundant architecture</li>
+                            <li>System health monitoring</li>
+                            <li>Mission critical decision making</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <div class="component-title">⚡ Processing Section</div>
+                    <div class="component-details">
+                        <ul>
+                            <li>Radiation tolerant FPGA (Kintex UltraScale)</li>
+                            <li>Low power Mythic AI chip for ML processing</li>
+                            <li>High-speed analog compute modules</li>
+                            <li>Parallel signal processing capabilities</li>
+                            <li>Real-time data compression & encoding</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <div class="component-title">📡 RF Communication</div>
+                    <div class="component-details">
+                        <ul>
+                            <li>X-band link with Uranus Orbiter Platform</li>
+                            <li>UHF/X-band link with impactor probe</li>
+                            <li>AD9371 transceiver (300 MHz - 6 GHz)</li>
+                            <li>Direct sampling & upconversion</li>
+                            <li>Store and forward data relay</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <div class="component-title">🧮 Analog Compute Engine</div>
+                    <div class="component-details">
+                        <ul>
+                            <li>Modular analog processing cards</li>
+                            <li>Real-time signal analysis</li>
+                            <li>Continuous computation capabilities</li>
+                            <li>Low latency parallel processing</li>
+                            <li>Hot-swappable compute modules</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <div class="component-title">🔋 Power Management</div>
+                    <div class="component-details">
+                        <ul>
+                            <li>Multi-stage power conversion</li>
+                            <li>Isolated analog/digital supplies</li>
+                            <li>Dynamic power scaling</li>
+                            <li>Fault-tolerant distribution</li>
+                            <li>Battery backup systems</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <div class="component-title">💾 Data Storage</div>
+                    <div class="component-details">
+                        <ul>
+                            <li>High-speed DDR3 memory arrays</li>
+                            <li>Radiation-tolerant NAND flash</li>
+                            <li>Configuration storage (NOR flash)</li>
+                            <li>Science data buffering</li>
+                            <li>Error correction & redundancy</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MRD PRD -->
+        <div class="section">
+            <h2 class="section-title">🔗 MRD and PDR</h2>
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
+                <a href="mrd.html" class="phase-header" style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
+                    Mission Definition Review
+                </a>
+                <a href="aerolite_presentation.html" class="phase-header" style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
+                    Preliminary Design Review
+                </a>
+            </div>
+        </div>
+
+        <!-- System Interconnection -->
+        <div class="section">
+            <h2 class="section-title">🔗 System Interconnection Architecture</h2>
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
+                <a href="arch.html" class="phase-header" style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
+                    Backplane Architecture
+                </a>
+            </div>
+        </div>
+
+        <!-- Mission Phases -->
+        <div class="section">
+            <h2 class="section-title">🚀 Mission Phases & Operations</h2>
+            <div class="mission-timeline">
+                <div class="phase-row">
+                    <div class="phase-header">Phase</div>
+                    <div class="phase-header">Duration</div>
+                    <div class="phase-header">Top Level Objectives</div>
+                    <div class="phase-header">Analog Compute Operations</div>
+                </div>
+
+                <div class="phase-row">
+                    <div>
+                        <div class="phase-title">🛰️ Transit Phase</div>
+                        <div class="phase-duration">16 years</div>
+                    </div>
+                    <div>Deep space cruise to Uranus system</div>
+                    <div class="phase-objective">
+                        Maintain system health during interplanetary transit.
+                        Periodic system diagnostics and calibration.
+                    </div>
+                    <div class="phase-operations">
+                        Analog modules in hibernation mode. 
+                        Periodic self-test and calibration routines.
+                    </div>
+                </div>
+
+                <div class="phase-row">
+                    <div>
+                        <div class="phase-title">🔍 Reconnaissance</div>
+                        <div class="phase-duration">Days/Weeks</div>
+                    </div>
+                    <div>AI-powered landing site identification</div>
+                    <div class="phase-objective">
+                        Process UOP imagery using AI to identify optimal impact locations.
+                        Real-time terrain analysis and risk assessment.
+                    </div>
+                    <div class="phase-operations">
+                        Full analog compute array activation.
+                        Parallel image processing and pattern recognition.
+                        Continuous ML inference on surface features.
+                    </div>
+                </div>
+
+                <div class="phase-row">
+                    <div>
+                        <div class="phase-title">🚀 Deployment</div>
+                        <div class="phase-duration">~30 minutes</div>
+                    </div>
+                    <div>CubeSat release and initial checkout</div>
+                    <div class="phase-objective">
+                        Ensure successful deployment from UOP.
+                        Verify all systems operational post-separation.
+                    </div>
+                    <div class="phase-operations">
+                        Real-time trajectory computation.
+                        Analog navigation and attitude processing.
+                        Communication link establishment.
+                    </div>
+                </div>
+
+                <div class="phase-row">
+                    <div>
+                        <div class="phase-title">🎯 Impactor Science</div>
+                        <div class="phase-duration">~TBD hours</div>
+                    </div>
+                    <div>Data relay and processing from surface probe</div>
+                    <div class="phase-objective">
+                        Receive, process, and relay impactor science data.
+                        Real-time data compression and error correction.
+                    </div>
+                    <div class="phase-operations">
+                        High-speed analog signal processing.
+                        Continuous data stream analysis.
+                        Adaptive compression algorithms.
+                    </div>
+                </div>
+
+                <div class="phase-row">
+                    <div>
+                        <div class="phase-title">🔬 Orbiter Science</div>
+                        <div class="phase-duration">~TBD months</div>
+                    </div>
+                    <div>Extended orbital operations and science</div>
+                    <div class="phase-objective">
+                        Long-term environmental monitoring.
+                        Surface composition mapping and analysis.
+                    </div>
+                    <div class="phase-operations">
+                        Continuous analog sensor processing.
+                        Long-term data trend analysis.
+                        Autonomous science prioritization.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Details -->
+        <div class="section">
+            <h2 class="section-title">👥 Project Team</h2>
+            <div class="power-grid">
+                <div class="power-component">
+                    <div class="profile-picture">
+                        <img src="team/Landers.png" alt="Viduranga Landers">
+                    </div>
+                    <div class="power-value">Viduranga Landers</div>
+                    <div class="power-label">University of Colombo</div>
+                </div>
+                <div class="power-component">
+                    <div class="profile-picture">
+                        <img src="team/Oshada.png" alt="Oshadha Pathirana">
+                    </div>
+                    <div class="power-value">Oshadha Pathirana</div>
+                    <div class="power-label">University of Moratuwa</div>
+                </div>
+                <div class="power-component">
+                    <div class="profile-picture">
+                        <img src="team/Harshith.png" alt="Harshith Aluvihare">
+                    </div>
+                    <div class="power-value">Harshith Aluvihare</div>
+                    <div class="power-label">Sri Lanka Technology Campus</div>
+                </div>
+                <div class="power-component">
+                    <div class="profile-picture">
+                        <img src="team/Lisitha.jpg" alt="Lisitha Dissanayake">
+                    </div>
+                    <div class="power-value">Lisitha Dissanayake</div>
+                    <div class="power-label">University of Colombo</div>
+                </div>
+                <div class="power-component">
+                    <div class="profile-picture">
+                        <img src="team/Adeepa.jpg" alt="Adeepa ">
+                    </div>
+                    <div class="power-value">Adeepa </div>
+                    <div class="power-label">Informatics Institute of Technology - Sri Lanka</div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🛰️ Project Aerolite - Pushing the boundaries of space-based analog computing</p>
+        <p style="opacity: 0.7; margin-top: 10px;">Advanced hybrid architecture for next-generation deep space missions</p>
+    </div>
+
+    <script>
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate component boxes on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'slideInUp 0.6s ease-out';
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.component-box, .phase-row, .power-component').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Add CSS animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Power consumption calculator
+            const powerComponents = document.querySelectorAll('.power-component');
+            powerComponents.forEach(comp => {
+                comp.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1.05)';
+                    }, 200);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

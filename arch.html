@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Backplane System Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .architecture-container {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Left Panel - System Interface */
+        .system-interface {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(74, 144, 226, 0.3);
+            height: fit-content;
+        }
+
+        .interface-title {
+            font-size: 1.4em;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .interface-module {
+            background: linear-gradient(135deg, #d4a574 0%, #c8956d 100%);
+            color: #2c1810;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .interface-module:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(212, 165, 116, 0.4);
+        }
+
+        /* Main Backplane */
+        .backplane-container {
+            background: rgba(255,255,255,0.05);
+            border: 3px solid #4a90e2;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .backplane-title {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4a90e2;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* Top Modules Row */
+        .top-modules {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .reconfig-handler {
+            background: linear-gradient(135deg, #a8d8ea 0%, #7fb3d3 100%);
+            color: #1a365d;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #4a90e2;
+        }
+
+        .power-mgmt {
+            background: linear-gradient(135deg, #ffb3ba 0%, #ff9aa2 100%);
+            color: #8b1538;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #d63384;
+        }
+
+        .module-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .sub-modules {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .sub-module {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .sub-module:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        /* Connection Lines */
+        .spi-connection {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #4a90e2;
+            position: relative;
+        }
+
+        .spi-connection::before,
+        .spi-connection::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 100px;
+            height: 2px;
+            background: #4a90e2;
+        }
+
+        .spi-connection::before {
+            left: 0;
+        }
+
+        .spi-connection::after {
+            right: 0;
+        }
+
+        /* Hybrid Processing System */
+        .hybrid-system {
+            border: 3px dashed #4a90e2;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            background: rgba(74, 144, 226, 0.05);
+        }
+
+        .hybrid-title {
+            text-align: center;
+            color: #4a90e2;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .processing-modules {
+            display: grid;
+            grid-template-columns: 2fr 2fr;
+            gap: 20px;
+        }
+
+        .fpga-module {
+            background: linear-gradient(135deg, #a8d8ea 0%, #7fb3d3 100%);
+            color: #1a365d;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #4a90e2;
+        }
+
+        .analog-module {
+            background: linear-gradient(135deg, #c8a2c8 0%, #b794b7 100%);
+            color: #4a1a4a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #8e44ad;
+        }
+
+        .fpga-components {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .analog-components {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .component {
+            background: rgba(255,255,255,0.3);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+
+        .component:hover {
+            background: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Bus Connections */
+        .bus-info {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 0.9em;
+            color: #4a90e2;
+            font-style: italic;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .reconfigurable-bus {
+            background: rgba(212, 165, 116, 0.2);
+            border: 2px solid #d4a574;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .payload-interface {
+            background: linear-gradient(135deg, #d4a574 0%, #c8956d 100%);
+            color: #2c1810;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+        }
+
+        /* CubeSat Subsystems */
+        .cubesat-section {
+            margin-top: 40px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #4a90e2;
+        }
+
+        .cubesat-title {
+            text-align: center;
+            font-size: 1.3em;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .cubesat-modules {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .cubesat-module {
+            background: linear-gradient(135deg, #a8d8ea 0%, #7fb3d3 100%);
+            color: #1a365d;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .cubesat-module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Connection Arrow */
+        .connection-arrow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .arrow {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid #4a90e2;
+            margin: 0 10px;
+        }
+
+        .arrow-up {
+            border-top: none;
+            border-bottom: 20px solid #4a90e2;
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .architecture-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .processing-modules {
+                grid-template-columns: 1fr;
+            }
+            
+            .cubesat-modules {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-modules {
+                grid-template-columns: 1fr;
+            }
+            
+            .fpga-components,
+            .analog-components {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .bottom-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Interactive Features */
+        .clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clickable:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+        }
+
+        .active {
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛰️ Satellite Backplane System Architecture</h1>
+            <p>Advanced Hybrid Processing System for Space Applications</p>
+        </div>
+
+        <div class="architecture-container">
+            <!-- Left Panel - System Interface -->
+            <div class="system-interface">
+                <div class="interface-title">System Interface</div>
+                
+                <div class="interface-module clickable" data-module="sram">
+                    SRAM
+                </div>
+                
+                <div class="interface-module clickable" data-module="storage">
+                    Secondary<br>Storage
+                </div>
+                
+                <div class="interface-module clickable" data-module="eeprom">
+                    EEPROM
+                </div>
+                
+                <div class="interface-module clickable" data-module="rf">
+                    RF<br>Transceiver
+                </div>
+            </div>
+
+            <!-- Main Backplane -->
+            <div class="backplane-container">
+                <div class="backplane-title">Satellite Backplane</div>
+                
+                <!-- Top Modules -->
+                <div class="top-modules">
+                    <div class="reconfig-handler clickable" data-module="reconfig">
+                        <div class="status-indicator"></div>
+                        <div class="module-title">Reconfiguration Handler</div>
+                        <div class="sub-modules">
+                            <div class="sub-module">Reconfiguration<br>microprocessor</div>
+                            <div class="sub-module">Configuration<br>memory</div>
+                        </div>
+                    </div>
+                    
+                    <div class="power-mgmt clickable" data-module="power">
+                        <div class="status-indicator"></div>
+                        <div class="module-title">Power Management Module</div>
+                        <div class="sub-modules">
+                            <div class="sub-module">PMIC</div>
+                            <div class="sub-module">Power Supply<br>interfaces</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="spi-connection">SPI</div>
+
+                <!-- Hybrid Processing System -->
+                <div class="hybrid-system">
+                    <div class="hybrid-title">🔧 Hybrid Processing System</div>
+                    
+                    <div class="processing-modules">
+                        <div class="fpga-module clickable" data-module="fpga">
+                            <div class="status-indicator"></div>
+                            <div class="module-title">FPGA Module</div>
+                            <div class="fpga-components">
+                                <div class="component">Crypto<br>Engine</div>
+                                <div class="component">I/O<br>Interface</div>
+                                <div class="component">Interface<br>Controller</div>
+                            </div>
+                        </div>
+                        
+                        <div class="analog-module clickable" data-module="analog">
+                            <div class="status-indicator"></div>
+                            <div class="module-title">Analog Compute Module</div>
+                            <div class="analog-components">
+                                <div class="component">Analog CIM<br>cores</div>
+                                <div class="component">Flash<br>memory</div>
+                                <div class="component">ADC/DAC</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bus-info">
+                        PCIe or AXI bus | Processed data bus | Control data bus
+                    </div>
+                </div>
+
+                <!-- Bottom Section -->
+                <div class="bottom-section">
+                    <div class="reconfigurable-bus">
+                        <strong>SPI/LVDS/UART/I2C</strong><br>
+                        (Reconfigurable bus)
+                    </div>
+                    
+                    <div class="payload-interface clickable" data-module="payload">
+                        <div class="status-indicator"></div>
+                        Payload Interface
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Arrow -->
+        <div class="connection-arrow">
+            <div class="arrow"></div>
+            <div class="arrow arrow-up"></div>
+        </div>
+
+        <!-- CubeSat Subsystems -->
+        <div class="cubesat-section">
+            <div class="cubesat-title">CubeSat Subsystems</div>
+            <div class="cubesat-modules">
+                <div class="cubesat-module clickable" data-module="sensors">
+                    <div class="status-indicator"></div>
+                    Payload<br>sensors
+                </div>
+                <div class="cubesat-module clickable" data-module="comm">
+                    <div class="status-indicator"></div>
+                    Communication<br>modules
+                </div>
+                <div class="cubesat-module clickable" data-module="housekeeping">
+                    <div class="status-indicator"></div>
+                    Housekeeping<br>units
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Panel -->
+        <div class="system-interface" style="margin-top: 30px;">
+            <div class="interface-title">System Status</div>
+            <div id="status-display" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; font-family: monospace;">
+                <div>System Status: <span style="color: #28a745;">OPERATIONAL</span></div>
+                <div>Active Modules: <span id="active-count">0</span>/9</div>
+                <div>Power Consumption: <span id="power-usage">75W</span></div>
+                <div>Data Throughput: <span id="throughput">1.2 Gbps</span></div>
+                <div>Temperature: <span id="temperature">-15°C</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // System interaction and status management
+        class SatelliteSystem {
+            constructor() {
+                this.activeModules = new Set();
+                this.powerConsumption = {
+                    sram: 5, storage: 8, eeprom: 2, rf: 15,
+                    reconfig: 12, power: 10, fpga: 25, analog: 20, payload: 18,
+                    sensors: 10, comm: 12, housekeeping: 8
+                };
+                this.basePower = 30;
+                this.init();
+            }
+
+            init() {
+                // Add click handlers to all modules
+                document.querySelectorAll('[data-module]').forEach(module => {
+                    module.addEventListener('click', (e) => {
+                        this.toggleModule(e.currentTarget);
+                    });
+                });
+
+                // Start status updates
+                this.updateStatus();
+                setInterval(() => this.updateStatus(), 2000);
+
+                // Add hover effects
+                this.addHoverEffects();
+            }
+
+            toggleModule(moduleElement) {
+                const moduleId = moduleElement.dataset.module;
+                
+                if (this.activeModules.has(moduleId)) {
+                    this.activeModules.delete(moduleId);
+                    moduleElement.classList.remove('active');
+                } else {
+                    this.activeModules.add(moduleId);
+                    moduleElement.classList.add('active');
+                }
+
+                this.updateStatus();
+                this.animateDataFlow();
+            }
+
+            updateStatus() {
+                const activeCount = this.activeModules.size;
+                let totalPower = this.basePower;
+                
+                this.activeModules.forEach(moduleId => {
+                    totalPower += this.powerConsumption[moduleId] || 0;
+                });
+
+                document.getElementById('active-count').textContent = activeCount;
+                document.getElementById('power-usage').textContent = `${totalPower}W`;
+                document.getElementById('throughput').textContent = `${(activeCount * 0.3 + 0.5).toFixed(1)} Gbps`;
+                document.getElementById('temperature').textContent = `${(-20 + activeCount * 2)}°C`;
+
+                // Update power usage color
+                const powerElement = document.getElementById('power-usage');
+                if (totalPower > 100) {
+                    powerElement.style.color = '#dc3545';
+                } else if (totalPower > 80) {
+                    powerElement.style.color = '#ffc107';
+                } else {
+                    powerElement.style.color = '#28a745';
+                }
+            }
+
+            animateDataFlow() {
+                // Create temporary data flow animation
+                const connections = document.querySelectorAll('.spi-connection, .bus-info');
+                connections.forEach(conn => {
+                    conn.style.animation = 'none';
+                    setTimeout(() => {
+                        conn.style.animation = 'pulse 0.5s ease-in-out';
+                    }, 10);
+                });
+            }
+
+            addHoverEffects() {
+                document.querySelectorAll('.clickable').forEach(element => {
+                    element.addEventListener('mouseenter', () => {
+                        element.style.transform = 'scale(1.02) translateY(-2px)';
+                    });
+                    
+                    element.addEventListener('mouseleave', () => {
+                        if (!element.classList.contains('active')) {
+                            element.style.transform = 'scale(1) translateY(0)';
+                        }
+                    });
+                });
+            }
+        }
+
+        // Initialize system when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SatelliteSystem();
+            
+            // Add some initial animation
+            setTimeout(() => {
+                document.querySelector('[data-module="fpga"]').click();
+                setTimeout(() => {
+                    document.querySelector('[data-module="analog"]').click();
+                }, 500);
+                setTimeout(() => {
+                    document.querySelector('[data-module="power"]').click();
+                }, 1000);
+            }, 1000);
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                // Reset all modules
+                document.querySelectorAll('.active').forEach(el => el.click());
+            }
+            if (e.key === 'a' || e.key === 'A') {
+                // Activate all modules
+                document.querySelectorAll('[data-module]').forEach(el => {
+                    if (!el.classList.contains('active')) el.click();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

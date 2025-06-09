@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Communication Data Flow Visualization</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Controls */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #btn-rf-out { background-color: #007bff; }
+        #btn-rf-out:hover { background-color: #0056b3; }
+
+        #btn-rf-in { background-color: #28a745; }
+        #btn-rf-in:hover { background-color: #1e7e34; }
+        
+        #btn-reset { background-color: #dc3545; }
+        #btn-reset:hover { background-color: #b02a37; }
+
+        /* Diagram Container */
+        .diagram-container {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* General Box Styles */
+        .box {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #333;
+            border-radius: 4px;
+            padding: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        /* Component Specific Styles */
+        #rf-comm { background-color: #d1e7dd; border: 2px solid #a3cfbb; top: 40px; left: 40px; width: 150px; height: 100px; }
+        #rf-comm .sub-box { background-color: #a3cfbb; width: 80%; padding: 5px; margin-top: 5px; border-radius: 2px;}
+        
+        #interfaces { background-color: #fff3cd; border: 2px solid #ffe69c; top: 200px; left: 40px; width: 150px; height: 350px; }
+        #interfaces .sub-box { background-color: #ffe69c; width: 85%; padding: 8px; margin: 6px 0; border-radius: 2px;}
+
+        #power { background-color: #dcfce7; border: 2px solid #bbf7d0; top: 120px; left: 280px; width: 180px; height: 120px; }
+        #power .sub-box { background-color: #bbf7d0; width: 85%; padding: 8px; margin: 6px 0; border-radius: 2px;}
+        
+        #microcontroller { background-color: #f3e8ff; border: 2px solid #e9d5ff; top: 320px; left: 280px; width: 180px; height: 100px; }
+        
+        #digital-sensors { background-color: #cce5ff; border: 2px solid #b8daff; top: 40px; left: 550px; width: 300px; height: 250px; }
+        #digital-sensors .sub-box { background-color: #b8daff; width: 85%; padding: 8px; margin: 8px 0; border-radius: 2px;}
+        
+        #analog-sensors { background-color: #ffd8d6; border: 2px solid #ffc0bc; top: 350px; left: 550px; width: 300px; height: 150px; }
+        #analog-sensors .sub-box { background-color: #ffc0bc; width: 85%; padding: 8px; margin: 8px 0; border-radius: 2px;}
+
+        /* Lines & Arrows */
+        .line {
+            position: absolute;
+            background-color: #adb5bd;
+            transition: background-color 0.4s ease;
+            z-index: -1;
+        }
+        
+        #spi-line-1 { top: 180px; left: 195px; width: 100px; height: 3px; }
+        #spi-line-2 { top: 180px; left: 292px; width: 3px; height: 143px; }
+        .spi-text { position: absolute; top: 190px; left: 215px; font-size: 12px; color: #6c757d; }
+
+        #rf-in-arrow { top: 100px; left: 15px; width: 25px; height: 3px; }
+        #rf-out-arrow { top: 70px; left: 15px; width: 25px; height: 3px; }
+        .arrow-head {
+            position: absolute;
+            top: -3.5px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+        #rf-in-arrow .arrow-head { right: -8px; border-left: 8px solid #adb5bd; }
+        #rf-out-arrow .arrow-head { left: -8px; border-right: 8px solid #adb5bd; }
+        .arrow-text { position: absolute; font-size: 12px; color: #6c757d; top: -18px; }
+        #rf-in-arrow .arrow-text { right: 0; }
+        #rf-out-arrow .arrow-text { left: 0; }
+
+        /* Highlight Classes for Animation */
+        .highlight {
+            background-color: #fd7e14 !important; /* Bright orange for highlight */
+            border-color: #e85a00 !important;
+            color: white;
+        }
+        
+        .highlight-line {
+            background-color: #fd7e14 !important;
+        }
+        
+        .highlight-arrow .arrow-head {
+             border-left-color: #fd7e14 !important;
+             border-right-color: #fd7e14 !important;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Radio Communication Data Flow</h1>
+    <div class="controls">
+        <button id="btn-rf-out">Visualize RF Out</button>
+        <button id="btn-rf-in">Visualize RF In</button>
+        <button id="btn-reset">Reset</button>
+    </div>
+
+    <div class="diagram-container">
+        <div id="rf-comm" class="box">
+            RF Communication
+            <div class="sub-box">Radio (SX1272)</div>
+            <div class="sub-box">Antenna</div>
+        </div>
+        <div id="rf-out-arrow" class="line"><div class="arrow-head"></div><span class="arrow-text">RF Out</span></div>
+        <div id="rf-in-arrow" class="line"><div class="arrow-head"></div><span class="arrow-text">RF In</span></div>
+        
+        <div id="interfaces" class="box">
+            <div id="p5" class="sub-box">Serial Peripheral Interface (SPI)</div>
+            <div class="sub-box">Boot-loading Interface</div>
+            <div id="p9" class="sub-box">Inter-Integrated Circuit (I2C)</div>
+            <div class="sub-box">Analog Pins</div>
+            <div id="p7" class="sub-box">UART Interface</div>
+        </div>
+        
+        <div class="box" id="power">
+            Power
+            <div class="sub-box">Solar Panel</div>
+            <div class="sub-box">PMIC</div>
+        </div>
+
+        <div id="microcontroller" class="box">
+            Microcontroller<br>ATMEGA328
+        </div>
+        
+        <div class="box" id="digital-sensors">
+            Digital Sensors
+            <div class="sub-box">Magnetometer</div>
+            <div class="sub-box">Temperature Sensor</div>
+            <div class="sub-box">Accelerometer</div>
+            <div class="sub-box">Thermopile</div>
+        </div>
+        
+        <div class="box" id="analog-sensors">
+            Analog Sensors
+            <div class="sub-box">Solar Panel Sensing Voltmeter</div>
+            <div class="sub-box">Capacitive Sensor</div>
+        </div>
+
+        <div id="spi-line-1" class="line"></div>
+        <div id="spi-line-2" class="line"></div>
+        <span class="spi-text">SPI Communication</span>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnRfOut = document.getElementById('btn-rf-out');
+            const btnRfIn = document.getElementById('btn-rf-in');
+            const btnReset = document.getElementById('btn-reset');
+            
+            // Elements involved in the radio data flow
+            const components = {
+                microcontroller: document.getElementById('microcontroller'),
+                spiInterface: document.getElementById('p5'),
+                spiLine1: document.getElementById('spi-line-1'),
+                spiLine2: document.getElementById('spi-line-2'),
+                rfComm: document.getElementById('rf-comm'),
+                rfOutArrow: document.getElementById('rf-out-arrow'),
+                rfInArrow: document.getElementById('rf-in-arrow'),
+            };
+
+            // Define the data paths for animation
+            const rfOutPath = [
+                { el: components.microcontroller, type: 'box' },
+                { el: components.spiInterface, type: 'box' },
+                { el: components.spiLine2, type: 'line' },
+                { el: components.spiLine1, type: 'line' },
+                { el: components.rfComm, type: 'box' },
+                { el: components.rfOutArrow, type: 'arrow' }
+            ];
+
+            const rfInPath = [
+                { el: components.rfInArrow, type: 'arrow' },
+                { el: components.rfComm, type: 'box' },
+                { el: components.spiLine1, type: 'line' },
+                { el: components.spiLine2, type: 'line' },
+                { el: components.spiInterface, type: 'box' },
+                { el: components.microcontroller, type: 'box' }
+            ];
+
+            let animationTimeout;
+
+            // Function to reset all highlights
+            function resetVisualization() {
+                clearTimeout(animationTimeout);
+                const allElements = document.querySelectorAll('.box, .line, .arrow-head');
+                allElements.forEach(el => {
+                    el.classList.remove('highlight', 'highlight-line');
+                });
+                components.rfOutArrow.classList.remove('highlight-arrow');
+                components.rfInArrow.classList.remove('highlight-arrow');
+            }
+
+            // Function to animate a given data path
+            function animateDataFlow(path) {
+                resetVisualization();
+                let delay = 0;
+                const stepDuration = 500; // ms between steps
+
+                path.forEach((step, index) => {
+                    animationTimeout = setTimeout(() => {
+                        if (step.type === 'box') {
+                            step.el.classList.add('highlight');
+                        } else if (step.type === 'line') {
+                            step.el.classList.add('highlight-line');
+                        } else if (step.type === 'arrow') {
+                            step.el.classList.add('highlight-line');
+                            step.el.classList.add('highlight-arrow');
+                        }
+                    }, delay);
+                    delay += stepDuration;
+                });
+            }
+
+            // Event Listeners
+            btnRfOut.addEventListener('click', () => animateDataFlow(rfOutPath));
+            btnRfIn.addEventListener('click', () => animateDataFlow(rfInPath));
+            btnReset.addEventListener('click', resetVisualization);
+        });
+    </script>
+</body>
+</html>
