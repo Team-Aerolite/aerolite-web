@@ -68,6 +68,7 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 30px;
+            padding: 0 10px;
         }
 
         .component-box {
@@ -78,6 +79,9 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .component-box:hover {
@@ -101,12 +105,14 @@
             font-weight: 600;
             margin-bottom: 15px;
             color: #3b82f6;
+            flex-shrink: 0;
         }
 
         .component-details {
             font-size: 0.95em;
             line-height: 1.6;
             opacity: 0.9;
+            flex-grow: 1;
         }
 
         .component-details li {
@@ -184,18 +190,23 @@
         /* Power Consumption */
         .power-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin: 40px auto;
+            max-width: 1200px;
+            padding: 0 20px;
         }
 
         .power-component {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 30px;
             text-align: center;
             border: 2px solid rgba(59, 130, 246, 0.3);
             transition: all 0.3s ease;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 320px;
         }
 
         .power-component:hover {
@@ -315,6 +326,24 @@
             }
         }
 
+        @media (max-width: 1200px) {
+            .power-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .power-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .power-component {
+                max-width: 280px;
+            }
+        }
+
         .footer {
             text-align: center;
             padding: 30px;
@@ -335,8 +364,8 @@
         <!-- System Architecture -->
         <div class="section">
             <h2 class="section-title">🏗️ System Architecture Overview</h2>
-            <div class="architecture-grid">
-                <div class="component-box">
+            <div class="architecture-grid" style="margin-top: 30px;">
+                <div class="component-box" style="margin-bottom: 0;">
                     <div class="component-title">🔧 Control Section</div>
                     <div class="component-details">
                         <ul>
