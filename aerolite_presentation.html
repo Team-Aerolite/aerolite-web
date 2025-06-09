@@ -426,17 +426,37 @@
 </head>
 <body>
     <div class="presentation-container">
-        <!-- Slide 1: Title -->
+        <!-- Slide 1: Title with Required Logos -->
         <div class="slide active">
             <div class="slide-number">1/24</div>
             <div class="slide-content center-content">
-                <h1 style="font-size: 3.5em; margin-bottom: 30px; text-align: center; background: linear-gradient(90deg, #007bff 0%, #0056b3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🚀 Project Aerolite</h1>
-                <h2 style="font-size: 2em; margin-bottom: 20px; text-align: center;">A Hybrid Analog-FPGA Compute Architecture</h2>
-                <p style="font-size: 1.3em; text-align: center; opacity: 0.8;">For Sustainable and Long-Lasting Small Satellite Operations</p>
-                <div style="margin-top: 50px; text-align: center;">
-                    <div style="background: linear-gradient(135deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 86, 179, 0.1) 100%); padding: 30px; border-radius: 20px; border: 2px solid rgba(0, 123, 255, 0.3);">
-                        <p style="font-size: 1.1em; font-style: italic;">"Transforming space computing through hybrid architecture innovation"</p>
+                <!-- Logo Section -->
+                <div class="logo-container" style="display: flex; justify-content: center; gap: 40px; margin-bottom: 15px;">
+                    <div class="logo-box" style="text-align: center;">
+                        <img src="EPD.jpg" alt="EPD Platform Logo" style="width: 120px; height: auto; margin-bottom: 10px;">
+                        <p style="font-weight: 600; font-size: 1.1em;">Educational and Professional <br> Development Platform</p>
                     </div>
+                    <div class="logo-box" style="text-align: center;">
+                        <img src="ac25-logo.jpeg" alt="ACHIEVED Competition 2025 Logo" style="width: 120px; height: auto; margin-bottom: 10px;">
+                        <p style="font-weight: 600; font-size: 1.1em;">ACHIEVED Competition 2025</p>
+                    </div>
+                </div>
+
+                <!-- Main Title -->
+                <h1 style="font-size: 2.5em; margin: 1px 0; text-align: center; background: linear-gradient(90deg, #007bff 0%, #0056b3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🚀 Project Aerolite</h1>
+                <h2 style="font-size: 1.5em; margin-bottom: 1px; text-align: center;">Hybrid Analog–FPGA Computing Architecture for Space Instruments</h2>
+                
+                <!-- Team Information -->
+                <div class="team-info" style="margin-top: 40px;">
+                    <img src="logob.png" alt="Team Aerolite Logo" style="width: 150px; height: 150px; object-fit: contain;">
+
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="color: #007bff; font-size: 1.5em; margin-bottom: 10px;">Team Aerolite Innovations</h3>
+                            <p style="font-size: 1.1em; opacity: 0.9;">Challenge: Sustainable and Long-Lasting Small Satellite Operations</p>
+                        </div>
+                    </div>
+                    <p style="font-style: italic; font-size: 1.1em;">"Analog Speed. Digital Flexibility. Space Ready."</p>
                 </div>
             </div>
         </div>
@@ -1597,8 +1617,6 @@
             progressIndicator.innerHTML = `<div class="progress-bar" style="width: ${((index + 1) / totalSlides) * 100}%"></div>`;
             slide.appendChild(progressIndicator);
         });
-
-
 
         // Touch/swipe support for mobile
         let startX = null;
