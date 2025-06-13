@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Backplane System - D3.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0c1445 0%, #1a1f3a 50%, #2d1b69 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+        }
+
+        #satellite-svg {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .module {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .module:hover {
+            filter: brightness(1.2);
+        }
+
+        .module.active {
+            filter: brightness(1.4) saturate(1.5);
+        }
+
+        .module-rect {
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 2;
+            rx: 8;
+            ry: 8;
+        }
+
+        .module-text {
+            fill: white;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .sub-text {
+            font-size: 10px;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        .status-indicator.active {
+            fill: #28a745;
+            filter: drop-shadow(0 0 5px #28a745);
+        }
+
+        .connection-line {
+            stroke: rgba(100, 200, 255, 0.6);
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.7;
+        }
+
+        .connection-line.active {
+            stroke: #00ff88;
+            stroke-width: 3;
+            opacity: 1;
+            filter: drop-shadow(0 0 3px #00ff88);
+        }
+
+        .bus-label {
+            fill: #87ceeb;
+            text-anchor: middle;
+            font-size: 11px;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        .section-title {
+            fill: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            text-anchor: middle;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .section-box {
+            fill: none;
+            stroke: rgba(255, 215, 0, 0.3);
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            rx: 15;
+            ry: 15;
+        }
+
+        .data-flow {
+            fill: #00ff88;
+            stroke: none;
+            opacity: 0;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+        }
+
+        .controls button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            margin: 2px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: monospace;
+            min-width: 200px;
+            z-index: 1000;
+        }
+
+        .status-title {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .power-high { color: #dc3545; }
+        .power-medium { color: #ffc107; }
+        .power-low { color: #28a745; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes dataFlow {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛰️ Satellite Backplane System Architecture</h1>
+            <p>Advanced Hybrid Processing System for Space Applications - D3.js Interactive</p>
+        </div>
+        
+        <svg id="satellite-svg" width="1500" height="900"></svg>
+        
+        <div class="controls">
+            <div style="color: #ffd700; font-weight: bold; margin-bottom: 10px;">Controls</div>
+            <button onclick="resetAllModules()">Reset All (R)</button>
+            <button onclick="activateAllModules()">Activate All (A)</button>
+            <button onclick="randomActivity()">Random Activity</button>
+        </div>
+        
+        <div class="status-panel">
+            <div class="status-title">System Status</div>
+            <div class="status-item">Status: <span style="color: #28a745;">OPERATIONAL</span></div>
+            <div class="status-item">Active: <span id="active-count">0</span>/12</div>
+            <div class="status-item">Power: <span id="power-usage">30W</span></div>
+            <div class="status-item">Throughput: <span id="throughput">0.5 Gbps</span></div>
+            <div class="status-item">Temp: <span id="temperature">-20°C</span></div>
+        </div>
+    </div>
+
+    <script>
+        class SatelliteSystemD3 {
+            constructor() {
+                this.svg = d3.select("#satellite-svg");
+                this.width = 1500;
+                this.height = 900;
+                this.activeModules = new Set();
+                
+                this.powerConsumption = {
+                    sram: 5, storage: 8, eeprom: 2, rf: 15,
+                    reconfig: 12, power: 10, fpga: 25, analog: 20, payload: 18,
+                    sensors: 10, comm: 12, housekeeping: 8
+                };
+                this.basePower = 30;
+                
+                // Well-organized, grid-based layout
+                this.modules = [
+                    // System Interface Column (Left)
+                    {id: 'sram', x: 80, y: 180, width: 120, height: 70, color: '#4a90e2', label: 'SRAM', section: 'interface'},
+                    {id: 'storage', x: 80, y: 270, width: 120, height: 70, color: '#7b68ee', label: 'Secondary\nStorage', section: 'interface'},
+                    {id: 'eeprom', x: 80, y: 360, width: 120, height: 70, color: '#9370db', label: 'EEPROM', section: 'interface'},
+                    {id: 'rf', x: 80, y: 450, width: 120, height: 70, color: '#ff6b6b', label: 'RF\nTransceiver', section: 'interface'},
+                    
+                    // Backplane Management (Top Center)
+                    {id: 'reconfig', x: 300, y: 120, width: 200, height: 80, color: '#50c878', label: 'Reconfiguration Handler', section: 'backplane',
+                     subModules: [{label: 'Reconfiguration μP', x: 20, y: 30}, {label: 'Config Memory', x: 20, y: 55}]},
+                    {id: 'power', x: 550, y: 120, width: 200, height: 80, color: '#ffa500', label: 'Power Management', section: 'backplane',
+                     subModules: [{label: 'PMIC', x: 20, y: 30}, {label: 'Power Interfaces', x: 20, y: 55}]},
+                    
+                    // Hybrid Processing Core (Center)
+                    {id: 'fpga', x: 300, y: 280, width: 200, height: 120, color: '#20b2aa', label: 'FPGA Module', section: 'hybrid',
+                     subModules: [{label: 'Crypto Engine', x: 20, y: 30}, {label: 'I/O Interface', x: 20, y: 55}, {label: 'Interface Controller', x: 20, y: 80}]},
+                    {id: 'analog', x: 550, y: 280, width: 200, height: 120, color: '#da70d6', label: 'Analog Compute', section: 'hybrid',
+                     subModules: [{label: 'Analog CIM Cores', x: 20, y: 30}, {label: 'Flash Memory', x: 20, y: 55}, {label: 'ADC/DAC', x: 20, y: 80}]},
+                    
+                    // Payload Interface (Bottom Center)
+                    {id: 'payload', x: 425, y: 480, width: 200, height: 80, color: '#32cd32', label: 'Payload Interface', section: 'backplane'},
+                    
+                    // CubeSat Subsystems (Right Column)
+                    {id: 'sensors', x: 1100, y: 250, width: 140, height: 80, color: '#ff7f50', label: 'Payload\nSensors', section: 'cubesat'},
+                    {id: 'comm', x: 1100, y: 350, width: 140, height: 80, color: '#87ceeb', label: 'Communication\nModules', section: 'cubesat'},
+                    {id: 'housekeeping', x: 1100, y: 450, width: 140, height: 80, color: '#dda0dd', label: 'Housekeeping\nUnits', section: 'cubesat'}
+                ];
+                
+                // Organized connection paths
+                this.connections = [
+                    // Interface to Processing
+                    {from: 'sram', to: 'fpga', type: 'data'},
+                    {from: 'storage', to: 'fpga', type: 'data'},
+                    {from: 'eeprom', to: 'reconfig', type: 'config'},
+                    {from: 'rf', to: 'analog', type: 'rf'},
+                    
+                    // Management to Processing
+                    {from: 'reconfig', to: 'fpga', type: 'control'},
+                    {from: 'reconfig', to: 'analog', type: 'control'},
+                    {from: 'power', to: 'fpga', type: 'power'},
+                    {from: 'power', to: 'analog', type: 'power'},
+                    
+                    // Processing Core
+                    {from: 'fpga', to: 'analog', type: 'bus'},
+                    
+                    // Processing to Payload
+                    {from: 'fpga', to: 'payload', type: 'bus'},
+                    {from: 'analog', to: 'payload', type: 'bus'},
+                    
+                    // Payload to Subsystems
+                    {from: 'payload', to: 'sensors', type: 'interface'},
+                    {from: 'payload', to: 'comm', type: 'interface'},
+                    {from: 'payload', to: 'housekeeping', type: 'interface'}
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.drawBackground();
+                this.drawSections();
+                this.drawConnections();
+                this.drawModules();
+                this.drawBusLabels();
+                this.startAnimations();
+                this.updateStatus();
+                
+                // Auto-activate some modules for demo
+                setTimeout(() => this.demoSequence(), 1000);
+                
+                // Update status periodically
+                setInterval(() => this.updateStatus(), 2000);
+            }
+            
+            drawBackground() {
+                // Add arrowhead markers
+                const defs = this.svg.append('defs');
+                
+                // Normal arrowhead
+                defs.append('marker')
+                    .attr('id', 'arrowhead')
+                    .attr('viewBox', '0 -5 10 10')
+                    .attr('refX', 8)
+                    .attr('refY', 0)
+                    .attr('markerWidth', 6)
+                    .attr('markerHeight', 6)
+                    .attr('orient', 'auto')
+                    .append('path')
+                    .attr('d', 'M0,-5L10,0L0,5')
+                    .attr('fill', 'rgba(100, 200, 255, 0.6)');
+                
+                // Active arrowhead
+                defs.append('marker')
+                    .attr('id', 'arrowhead-active')
+                    .attr('viewBox', '0 -5 10 10')
+                    .attr('refX', 8)
+                    .attr('refY', 0)
+                    .attr('markerWidth', 6)
+                    .attr('markerHeight', 6)
+                    .attr('orient', 'auto')
+                    .append('path')
+                    .attr('d', 'M0,-5L10,0L0,5')
+                    .attr('fill', '#00ff88')
+                    .style('filter', 'drop-shadow(0 0 3px #00ff88)');
+                
+                // Subtle grid
+                const pattern = defs.append('pattern')
+                    .attr('id', 'grid')
+                    .attr('width', 50)
+                    .attr('height', 50)
+                    .attr('patternUnits', 'userSpaceOnUse');
+                
+                pattern.append('path')
+                    .attr('d', 'M 50 0 L 0 0 0 50')
+                    .attr('fill', 'none')
+                    .attr('stroke', 'rgba(255,255,255,0.05)')
+                    .attr('stroke-width', 1);
+                
+                this.svg.append('rect')
+                    .attr('width', this.width)
+                    .attr('height', this.height)
+                    .attr('fill', 'url(#grid)');
+            }
+            
+            drawSections() {
+                const sections = [
+                    {name: 'System Interface', x: 50, y: 100, width: 180, height: 450},
+                    {name: 'Satellite Backplane', x: 270, y: 80, width: 510, height: 500},
+                    {name: 'CubeSat Subsystems', x: 1070, y: 200, width: 200, height: 360}
+                ];
+                
+                sections.forEach(section => {
+                    // Section background
+                    this.svg.append('rect')
+                        .attr('class', 'section-box')
+                        .attr('x', section.x)
+                        .attr('y', section.y)
+                        .attr('width', section.width)
+                        .attr('height', section.height);
+                    
+                    // Section title
+                    this.svg.append('text')
+                        .attr('class', 'section-title')
+                        .attr('x', section.x + section.width / 2)
+                        .attr('y', section.y + 25)
+                        .text(section.name);
+                });
+                
+                // Hybrid Processing subsection
+                this.svg.append('rect')
+                    .attr('class', 'section-box')
+                    .attr('x', 285)
+                    .attr('y', 240)
+                    .attr('width', 480)
+                    .attr('height', 180)
+                    .style('stroke', 'rgba(32, 178, 170, 0.4)');
+                
+                this.svg.append('text')
+                    .attr('class', 'section-title')
+                    .attr('x', 525)
+                    .attr('y', 260)
+                    .style('fill', '#20b2aa')
+                    .style('font-size', '14px')
+                    .text('🔧 Hybrid Processing System');
+            }
+            
+            drawConnections() {
+                const connectionGroup = this.svg.append('g').attr('class', 'connections');
+                
+                this.connections.forEach((conn, i) => {
+                    const fromModule = this.modules.find(m => m.id === conn.from);
+                    const toModule = this.modules.find(m => m.id === conn.to);
+                    
+                    if (fromModule && toModule) {
+                        const x1 = fromModule.x + fromModule.width;
+                        const y1 = fromModule.y + fromModule.height / 2;
+                        const x2 = toModule.x;
+                        const y2 = toModule.y + toModule.height / 2;
+                        
+                        connectionGroup.append('line')
+                            .attr('x1', x1)
+                            .attr('y1', y1)
+                            .attr('x2', x2)
+                            .attr('y2', y2)
+                            .attr('class', `connection-line connection-${conn.from}-${conn.to}`)
+                            .attr('id', `conn-${i}`)
+                            .attr('marker-end', 'url(#arrowhead)');
+                    }
+                });
+            }
+            
+            drawBusLabels() {
+                // Main processing bus
+                this.svg.append('text')
+                    .attr('class', 'bus-label')
+                    .attr('x', 525)
+                    .attr('y', 430)
+                    .text('PCIe/AXI Processing Bus');
+                
+                // SPI bus
+                this.svg.append('text')
+                    .attr('class', 'bus-label')
+                    .attr('x', 400)
+                    .attr('y', 220)
+                    .text('SPI Control Bus');
+                
+                // Interface bus
+                this.svg.append('text')
+                    .attr('class', 'bus-label')
+                    .attr('x', 850)
+                    .attr('y', 400)
+                    .text('SPI/LVDS/UART/I2C');
+            }
+            
+            drawModules() {
+                const moduleGroup = this.svg.append('g').attr('class', 'modules');
+                
+                this.modules.forEach(module => {
+                    const moduleContainer = moduleGroup.append('g')
+                        .attr('class', 'module')
+                        .attr('id', `module-${module.id}`)
+                        .style('cursor', 'pointer')
+                        .on('click', () => this.toggleModule(module.id))
+                        .on('mouseenter', function() {
+                            d3.select(this).transition().duration(200)
+                                .attr('transform', `translate(${module.x + module.width/2}, ${module.y + module.height/2}) scale(1.05) translate(${-(module.x + module.width/2)}, ${-(module.y + module.height/2)})`);
+                        })
+                        .on('mouseleave', function() {
+                            d3.select(this).transition().duration(200)
+                                .attr('transform', 'scale(1)');
+                        });
+                    
+                    // Module rectangle
+                    moduleContainer.append('rect')
+                        .attr('class', 'module-rect')
+                        .attr('x', module.x)
+                        .attr('y', module.y)
+                        .attr('width', module.width)
+                        .attr('height', module.height)
+                        .attr('fill', module.color)
+                        .attr('opacity', 0.8);
+                    
+                    // Status indicator
+                    moduleContainer.append('circle')
+                        .attr('class', 'status-indicator')
+                        .attr('cx', module.x + module.width - 15)
+                        .attr('cy', module.y + 15)
+                        .attr('r', 6)
+                        .attr('fill', '#555');
+                    
+                    // Main label
+                    const mainLabelY = module.subModules ? module.y + 30 : module.y + module.height / 2;
+                    const labelLines = module.label.split('\n');
+                    
+                    labelLines.forEach((line, index) => {
+                        moduleContainer.append('text')
+                            .attr('class', 'module-text')
+                            .attr('x', module.x + module.width / 2)
+                            .attr('y', mainLabelY + (index * 14))
+                            .text(line);
+                    });
+                    
+                    // Sub-modules
+                    if (module.subModules) {
+                        module.subModules.forEach(sub => {
+                            moduleContainer.append('text')
+                                .attr('class', 'module-text sub-text')
+                                .attr('x', module.x + sub.x)
+                                .attr('y', module.y + sub.y)
+                                .attr('text-anchor', 'start')
+                                .text(sub.label);
+                        });
+                    }
+                });
+            }
+            
+            toggleModule(moduleId) {
+                const moduleElement = d3.select(`#module-${moduleId}`);
+                
+                if (this.activeModules.has(moduleId)) {
+                    this.activeModules.delete(moduleId);
+                    moduleElement.classed('active', false);
+                    moduleElement.select('.status-indicator').classed('active', false);
+                } else {
+                    this.activeModules.add(moduleId);
+                    moduleElement.classed('active', true);
+                    moduleElement.select('.status-indicator').classed('active', true);
+                }
+                
+                this.updateConnections();
+                this.animateDataFlow();
+                this.updateStatus();
+            }
+            
+            updateConnections() {
+                this.connections.forEach((conn, i) => {
+                    const isActive = this.activeModules.has(conn.from) && this.activeModules.has(conn.to);
+                    const line = d3.select(`#conn-${i}`);
+                    line.classed('active', isActive);
+                    
+                    if (isActive) {
+                        line.attr('marker-end', 'url(#arrowhead-active)');
+                    } else {
+                        line.attr('marker-end', 'url(#arrowhead)');
+                    }
+                });
+            }
+            
+            animateDataFlow() {
+                const activeConnections = this.connections.filter(conn => 
+                    this.activeModules.has(conn.from) && this.activeModules.has(conn.to)
+                );
+                
+                activeConnections.forEach((conn, i) => {
+                    const fromModule = this.modules.find(m => m.id === conn.from);
+                    const toModule = this.modules.find(m => m.id === conn.to);
+                    
+                    const particle = this.svg.append('circle')
+                        .attr('class', 'data-flow')
+                        .attr('r', 4)
+                        .attr('cx', fromModule.x + fromModule.width)
+                        .attr('cy', fromModule.y + fromModule.height / 2);
+                    
+                    particle.transition()
+                        .duration(800)
+                        .ease(d3.easeLinear)
+                        .attr('cx', toModule.x)
+                        .attr('cy', toModule.y + toModule.height / 2)
+                        .style('opacity', 1)
+                        .transition()
+                        .duration(200)
+                        .style('opacity', 0)
+                        .remove();
+                });
+            }
+            
+            startAnimations() {
+                setInterval(() => {
+                    this.activeModules.forEach(moduleId => {
+                        const indicator = d3.select(`#module-${moduleId} .status-indicator`);
+                        indicator.transition()
+                            .duration(1000)
+                            .style('opacity', 0.5)
+                            .transition()
+                            .duration(1000)
+                            .style('opacity', 1);
+                    });
+                }, 2000);
+            }
+            
+            updateStatus() {
+                const activeCount = this.activeModules.size;
+                let totalPower = this.basePower;
+                
+                this.activeModules.forEach(moduleId => {
+                    totalPower += this.powerConsumption[moduleId] || 0;
+                });
+                
+                document.getElementById('active-count').textContent = activeCount;
+                document.getElementById('power-usage').textContent = `${totalPower}W`;
+                document.getElementById('throughput').textContent = `${(activeCount * 0.3 + 0.5).toFixed(1)} Gbps`;
+                document.getElementById('temperature').textContent = `${(-20 + activeCount * 2)}°C`;
+                
+                const powerElement = document.getElementById('power-usage');
+                powerElement.className = totalPower > 100 ? 'power-high' : 
+                                       totalPower > 80 ? 'power-medium' : 'power-low';
+            }
+            
+            demoSequence() {
+                const sequence = ['power', 'fpga', 'analog', 'payload'];
+                sequence.forEach((moduleId, i) => {
+                    setTimeout(() => this.toggleModule(moduleId), i * 600);
+                });
+            }
+        }
+        
+        // Global functions
+        function resetAllModules() {
+            system.activeModules.forEach(moduleId => {
+                system.toggleModule(moduleId);
+            });
+        }
+        
+        function activateAllModules() {
+            system.modules.forEach(module => {
+                if (!system.activeModules.has(module.id)) {
+                    system.toggleModule(module.id);
+                }
+            });
+        }
+        
+        function randomActivity() {
+            const randomModules = system.modules
+                .sort(() => 0.5 - Math.random())
+                .slice(0, Math.floor(Math.random() * 6) + 3);
+            
+            randomModules.forEach((module, i) => {
+                setTimeout(() => {
+                    if (!system.activeModules.has(module.id)) {
+                        system.toggleModule(module.id);
+                    }
+                }, i * 200);
+            });
+        }
+        
+        // Initialize
+        let system;
+        document.addEventListener('DOMContentLoaded', () => {
+            system = new SatelliteSystemD3();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') resetAllModules();
+            if (e.key === 'a' || e.key === 'A') activateAllModules();
+            if (e.key === ' ') {
+                e.preventDefault();
+                randomActivity();
+            }
+        });
+    </script>
+</body>
+</html>
