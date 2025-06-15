@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Top-Down DFD with Boxes - FPGA System</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: sans-serif; }
+    svg {
+      border: 1px solid #ccc;
+      font-family: sans-serif;
+    }
+    .node rect {
+      stroke-width: 1;
+      rx: 8;
+      ry: 8;
+    }
+    .node text {
+      pointer-events: none;
+      font-size: 12px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .link {
+      fill: none;
+      stroke-width: 2px;
+    }
+    .solid { stroke: #000; stroke-dasharray: 0; }
+    .dotted { stroke: #000; stroke-dasharray: 4; }
+  </style>
+</head>
+<body>
+<svg width="1000" height="800"></svg>
+<script>
+const nodes = [
+  { id: "Ground station", x: 500, y: 20, color: "#fdbf6f" },
+  { id: "Uplink commands", x: 500, y: 100, color: "#fcae91" },
+  { id: "FPGA Pre-processing", x: 500, y: 200, color: "#a6cee3" },
+  { id: "Cubesat Subsystems", x: 200, y: 320, color: "#b2df8a" },
+  { id: "Analog computations", x: 400, y: 400, color: "#cab2d6" },
+  { id: "Watchdog/Fault handler", x: 300, y: 520, color: "#fb9a99" },
+  { id: "Reconfiguration handler", x: 600, y: 360, color: "#8dd3c7" },
+  { id: "Radio downlink", x: 700, y: 300, color: "#fdbf6f" },
+  { id: "Downlinked Telemetry", x: 700, y: 400, color: "#ffffb3" }
+];
+
+const links = [
+  { source: "Ground station", target: "Uplink commands", type: "dotted" },
+  { source: "Uplink commands", target: "FPGA Pre-processing", type: "dotted" },
+  { source: "FPGA Pre-processing", target: "Cubesat Subsystems", type: "solid", label: "Control data / Sensor data" },
+  { source: "FPGA Pre-processing", target: "Analog computations", type: "solid", label: "Processed data / Computation results" },
+  { source: "Analog computations", target: "Watchdog/Fault handler", type: "dotted", label: "Error flags" },
+  { source: "FPGA Pre-processing", target: "Watchdog/Fault handler", type: "dotted", label: "Reset flag/alert" },
+  { source: "FPGA Pre-processing", target: "Reconfiguration handler", type: "solid", label: "Configuration data" },
+  { source: "Reconfiguration handler", target: "FPGA Pre-processing", type: "dotted", label: "Model update/Rollback" },
+  { source: "FPGA Pre-processing", target: "Radio downlink", type: "solid", label: "Results / Packets" },
+  { source: "FPGA Pre-processing", target: "Radio downlink", type: "dotted", label: "Status / Housekeeping" },
+  { source: "Radio downlink", target: "Downlinked Telemetry", type: "solid", label: "Downlink" }
+];
+
+const svg = d3.select("svg");
+
+// Draw links
+links.forEach(link => {
+  const source = nodes.find(n => n.id === link.source);
+  const target = nodes.find(n => n.id === link.target);
+
+  svg.append("line")
+    .attr("x1", source.x)
+    .attr("y1", source.y + 25)
+    .attr("x2", target.x)
+    .attr("y2", target.y - 25)
+    .attr("class", "link " + link.type);
+
+  if (link.label) {
+    svg.append("text")
+      .attr("x", (source.x + target.x) / 2)
+      .attr("y", (source.y + target.y) / 2 - 5)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "10px")
+      .text(link.label);
+  }
+});
+
+// Draw nodes
+const nodeGroup = svg.selectAll(".node")
+  .data(nodes)
+  .enter().append("g")
+  .attr("class", "node")
+  .attr("transform", d => `translate(${d.x},${d.y})`);
+
+nodeGroup.append("rect")
+  .attr("x", -70)
+  .attr("y", -20)
+  .attr("width", 140)
+  .attr("height", 40)
+  .attr("fill", d => d.color)
+  .attr("stroke", "#333");
+
+nodeGroup.append("text")
+  .attr("dy", "0.35em")
+  .text(d => d.id);
+</script>
+</body>
+</html>
