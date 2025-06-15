@@ -104,6 +104,31 @@
             margin: 0 auto;
         }
 
+        /* File type indicator */
+        .file-type-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(59, 130, 246, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .file-type-badge.gif {
+            background: rgba(236, 72, 153, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+
         /* Navigation Controls */
         .nav-controls {
             display: flex;
@@ -156,6 +181,7 @@
             justify-content: center;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .dot {
@@ -165,6 +191,7 @@
             background: rgba(255, 255, 255, 0.3);
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .dot.active, .dot:hover {
@@ -173,12 +200,22 @@
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
 
+        .dot.gif {
+            background: rgba(236, 72, 153, 0.5);
+        }
+
+        .dot.gif.active, .dot.gif:hover {
+            background: #ec4899;
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+        }
+
         /* Auto-play Controls */
         .autoplay-controls {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-top: 25px;
+            flex-wrap: wrap;
         }
 
         .autoplay-btn {
@@ -299,7 +336,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>MPreliminary Design Review</h1>
+        <h1>Preliminary Design Review</h1>
         <p>Hybrid Analog–FPGA Computing Architecture for Space Instruments</p>
     </div>
 
@@ -310,7 +347,8 @@
             <!-- Loading indicator -->
             <div id="loadingIndicator" class="slide active">
                 <div class="slide-title">Loading Slideshow...</div>
-                <div class="slide-description">Detecting images in your folder...</div>
+                <div class="slide-description">Detecting PNG and GIF images in your PDR folder...</div>
+                <div class="loading-spinner"></div>
             </div>
 
             <!-- Slides will be dynamically generated here -->
@@ -355,11 +393,11 @@
         let totalSlides = 0;
         const autoplayDuration = 4000; // 4 seconds per slide
         let imagesLoaded = false;
+        let slideData = []; // Store slide information
 
         // Configuration - you can modify these
-        const IMAGE_FOLDER = 'PDR/'; // Updated path format
-        const IMAGE_PREFIX = ''; // Add prefix if needed (e.g., 'slide_')
-        const IMAGE_EXTENSION = '.png'; // Change to .jpg, .jpeg, etc. if needed
+        const IMAGE_FOLDER = 'PDR/';
+        const SUPPORTED_EXTENSIONS = ['.png', '.gif']; // Support both PNG and GIF
         const MAX_SLIDES_TO_CHECK = 100; // Maximum number of slides to check for
 
         // Initialize slideshow
@@ -374,7 +412,7 @@
                     showSlide(slideIndex);
                     updateProgressBar();
                 } else {
-                    showError('No images found. Make sure your images are named 1.png, 2.png, etc.');
+                    showError('No images found. Make sure your images are named 1.png, 2.png, 25.gif, etc. in the PDR folder.');
                 }
             } catch (error) {
                 showError('Error loading slideshow: ' + error.message);
@@ -384,55 +422,72 @@
         async function loadImagesFromFolder() {
             const slidesContainer = document.getElementById('slidesContainer');
             const dotContainer = document.getElementById('dotIndicators');
-            let imageCount = 0;
+            let foundImages = [];
             let consecutiveFailures = 0;
-            const maxConsecutiveFailures = 5; // Stop after 5 consecutive missing images
+            const maxConsecutiveFailures = 10; // Increased for better coverage
 
+            // Check for images with different extensions
             for (let i = 1; i <= MAX_SLIDES_TO_CHECK; i++) {
-                const imagePath = `${IMAGE_FOLDER}${IMAGE_PREFIX}${i}${IMAGE_EXTENSION}`;
+                let imageFound = false;
                 
-                try {
-                    const imageExists = await checkImageExists(imagePath);
-                    if (imageExists) {
-                        imageCount++;
-                        consecutiveFailures = 0; // Reset failure counter
-                        
-                        // Create slide
-                        const slideDiv = document.createElement('div');
-                        slideDiv.className = 'slide';
-                        slideDiv.innerHTML = `
-                            <div class="slide-title">Slide ${i}</div>
-                            <img src="${imagePath}" alt="Slide ${i}" class="slide-image" 
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div class="error-message" style="display:none;">
-                                Failed to load image: ${imagePath}
-                            </div>
-                        `;
-                        slidesContainer.appendChild(slideDiv);
-
-                        // Create dot indicator
-                        const dot = document.createElement('span');
-                        dot.className = 'dot';
-                        dot.onclick = () => currentSlide(i);
-                        dotContainer.appendChild(dot);
-                    } else {
-                        consecutiveFailures++;
-                        if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
-                            // Stop checking if we've found some images and hit consecutive failures
-                            break;
+                for (const extension of SUPPORTED_EXTENSIONS) {
+                    const imagePath = `${IMAGE_FOLDER}${i}${extension}`;
+                    
+                    try {
+                        const imageExists = await checkImageExists(imagePath);
+                        if (imageExists) {
+                            foundImages.push({
+                                number: i,
+                                path: imagePath,
+                                extension: extension,
+                                type: extension.substring(1) // Remove the dot
+                            });
+                            imageFound = true;
+                            consecutiveFailures = 0;
+                            break; // Found image for this number, move to next
                         }
+                    } catch (error) {
+                        console.log(`Error checking image ${i}${extension}:`, error);
                     }
-                } catch (error) {
-                    console.log(`Error checking image ${i}:`, error);
+                }
+                
+                if (!imageFound) {
                     consecutiveFailures++;
-                    if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
-                        break;
+                    if (consecutiveFailures >= maxConsecutiveFailures && foundImages.length > 0) {
+                        break; // Stop if we've found some images and hit consecutive failures
                     }
                 }
             }
 
-            totalSlides = imageCount;
-            
+            // Sort images by number to maintain order
+            foundImages.sort((a, b) => a.number - b.number);
+            slideData = foundImages;
+            totalSlides = foundImages.length;
+
+            // Create slides and dots
+            foundImages.forEach((imageInfo, index) => {
+                // Create slide
+                const slideDiv = document.createElement('div');
+                slideDiv.className = 'slide';
+                slideDiv.innerHTML = `
+                    <div class="file-type-badge ${imageInfo.type}">${imageInfo.type.toUpperCase()}</div>
+                    <div class="slide-title">Slide ${imageInfo.number}</div>
+                    <img src="${imageInfo.path}" alt="Slide ${imageInfo.number}" class="slide-image" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="error-message" style="display:none;">
+                        Failed to load image: ${imageInfo.path}
+                    </div>
+                `;
+                slidesContainer.appendChild(slideDiv);
+
+                // Create dot indicator
+                const dot = document.createElement('span');
+                dot.className = `dot ${imageInfo.type}`;
+                dot.title = `Slide ${imageInfo.number} (${imageInfo.type.toUpperCase()})`;
+                dot.onclick = () => currentSlide(index + 1);
+                dotContainer.appendChild(dot);
+            });
+
             // Set first slide as active
             if (totalSlides > 0) {
                 const firstSlide = slidesContainer.querySelector('.slide');
@@ -450,7 +505,7 @@
                 img.src = imagePath;
                 
                 // Add timeout to avoid hanging
-                setTimeout(() => resolve(false), 3000);
+                setTimeout(() => resolve(false), 5000); // Increased timeout for GIFs
             });
         }
 
@@ -468,9 +523,11 @@
                     <div class="slide-title">Error Loading Slideshow</div>
                     <div class="error-message">${message}</div>
                     <div class="slide-description">
-                        Make sure your images are in the same folder as this HTML file and named: 1.png, 2.png, 3.png, etc.
+                        Make sure your images are in the PDR folder and named: 1.png, 2.png, 25.gif, 26.png, etc.
                         <br><br>
-                        You can also modify the IMAGE_FOLDER, IMAGE_PREFIX, and IMAGE_EXTENSION variables in the script to match your setup.
+                        Supported formats: PNG, GIF
+                        <br>
+                        The slideshow will automatically detect and load both image types.
                     </div>
                 `;
             }
@@ -508,8 +565,9 @@
             if (slides[index - 1]) slides[index - 1].classList.add('active');
             if (dots[index - 1]) dots[index - 1].classList.add('active');
             
-            // Update counter
-            document.getElementById('currentSlide').textContent = index;
+            // Update counter - show actual slide number from slideData
+            const currentSlideNumber = slideData[index - 1] ? slideData[index - 1].number : index;
+            document.getElementById('currentSlide').textContent = currentSlideNumber;
             document.getElementById('totalSlides').textContent = totalSlides;
         }
 
