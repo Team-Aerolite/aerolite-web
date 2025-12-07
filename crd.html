@@ -400,47 +400,54 @@
         async function loadImagesFromFolder() {
             const slidesContainer = document.getElementById('slidesContainer');
             const dotContainer = document.getElementById('dotIndicators');
+            let imageCount = 0;
+            let consecutiveFailures = 0;
+            const maxConsecutiveFailures = 5; // Stop after 5 consecutive missing images
 
-            // Create array of promises to check all images in parallel
-            const imageCheckPromises = [];
             for (let i = 1; i <= MAX_SLIDES_TO_CHECK; i++) {
                 const imagePath = `${IMAGE_FOLDER}${IMAGE_PREFIX}${i}${IMAGE_EXTENSION}`;
-                imageCheckPromises.push(
-                    checkImageExists(imagePath).then(exists => ({ index: i, path: imagePath, exists }))
-                );
+
+                try {
+                    const imageExists = await checkImageExists(imagePath);
+                    if (imageExists) {
+                        imageCount++;
+                        consecutiveFailures = 0; // Reset failure counter
+
+                        // Create slide
+                        const slideDiv = document.createElement('div');
+                        slideDiv.className = 'slide';
+                        slideDiv.innerHTML = `
+                            <div class="slide-title">Slide ${i}</div>
+                            <img src="${imagePath}" alt="Slide ${i}" class="slide-image" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="error-message" style="display:none;">
+                                Failed to load image: ${imagePath}
+                            </div>
+                        `;
+                        slidesContainer.appendChild(slideDiv);
+
+                        // Create dot indicator
+                        const dot = document.createElement('span');
+                        dot.className = 'dot';
+                        dot.onclick = () => currentSlide(i);
+                        dotContainer.appendChild(dot);
+                    } else {
+                        consecutiveFailures++;
+                        if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
+                            // Stop checking if we've found some images and hit consecutive failures
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log(`Error checking image ${i}:`, error);
+                    consecutiveFailures++;
+                    if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
+                        break;
+                    }
+                }
             }
 
-            // Wait for all checks to complete in parallel
-            const results = await Promise.all(imageCheckPromises);
-
-            // Filter and sort valid images
-            const validImages = results
-                .filter(result => result.exists)
-                .sort((a, b) => a.index - b.index);
-
-            // Create slides and dots for valid images
-            validImages.forEach((image, idx) => {
-                // Create slide
-                const slideDiv = document.createElement('div');
-                slideDiv.className = 'slide';
-                slideDiv.innerHTML = `
-                    <div class="slide-title">Slide ${image.index}</div>
-                    <img src="${image.path}" alt="Slide ${image.index}" class="slide-image" 
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <div class="error-message" style="display:none;">
-                        Failed to load image: ${image.path}
-                    </div>
-                `;
-                slidesContainer.appendChild(slideDiv);
-
-                // Create dot indicator
-                const dot = document.createElement('span');
-                dot.className = 'dot';
-                dot.onclick = () => currentSlide(idx + 1);
-                dotContainer.appendChild(dot);
-            });
-
-            totalSlides = validImages.length;
+            totalSlides = imageCount;
 
             // Set first slide as active
             if (totalSlides > 0) {
@@ -458,8 +465,8 @@
                 img.onerror = () => resolve(false);
                 img.src = imagePath;
 
-                // Reduced timeout from 3000ms to 500ms for faster loading
-                setTimeout(() => resolve(false), 500);
+                // Add timeout to avoid hanging
+                setTimeout(() => resolve(false), 3000);
             });
         }
 
