@@ -309,6 +309,26 @@
             border-radius: 10px;
             margin: 20px 0;
         }
+
+        /* Image loading state */
+        .slide-image[data-src] {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(96, 165, 250, 0.1) 100%);
+            position: relative;
+        }
+
+        .slide-image[data-src]::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.3);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 
@@ -400,25 +420,46 @@
         async function loadImagesFromFolder() {
             const slidesContainer = document.getElementById('slidesContainer');
             const dotContainer = document.getElementById('dotIndicators');
+            const maxConsecutiveFailures = 5;
+            const batchSize = 10; // Check 10 images at a time in parallel
+
             let imageCount = 0;
             let consecutiveFailures = 0;
-            const maxConsecutiveFailures = 5; // Stop after 5 consecutive missing images
+            let currentIndex = 1;
 
-            for (let i = 1; i <= MAX_SLIDES_TO_CHECK; i++) {
-                const imagePath = `${IMAGE_FOLDER}${IMAGE_PREFIX}${i}${IMAGE_EXTENSION}`;
+            // Process images in batches for parallel loading
+            while (currentIndex <= MAX_SLIDES_TO_CHECK) {
+                const batch = [];
+                const batchIndices = [];
 
-                try {
-                    const imageExists = await checkImageExists(imagePath);
-                    if (imageExists) {
+                // Create a batch of image checks
+                for (let i = 0; i < batchSize && currentIndex <= MAX_SLIDES_TO_CHECK; i++) {
+                    const index = currentIndex++;
+                    const imagePath = `${IMAGE_FOLDER}${IMAGE_PREFIX}${index}${IMAGE_EXTENSION}`;
+                    batchIndices.push(index);
+                    batch.push(checkImageExists(imagePath, index));
+                }
+
+                // Check all images in this batch in parallel
+                const results = await Promise.all(batch);
+
+                // Process results
+                for (let i = 0; i < results.length; i++) {
+                    const index = batchIndices[i];
+                    const imagePath = `${IMAGE_FOLDER}${IMAGE_PREFIX}${index}${IMAGE_EXTENSION}`;
+
+                    if (results[i]) {
                         imageCount++;
-                        consecutiveFailures = 0; // Reset failure counter
+                        consecutiveFailures = 0;
 
-                        // Create slide
+                        // Create slide with lazy loading
                         const slideDiv = document.createElement('div');
                         slideDiv.className = 'slide';
+                        slideDiv.setAttribute('data-slide-index', index);
                         slideDiv.innerHTML = `
-                            <div class="slide-title">Slide ${i}</div>
-                            <img src="${imagePath}" alt="Slide ${i}" class="slide-image" 
+                            <div class="slide-title">Slide ${index}</div>
+                            <img data-src="${imagePath}" alt="Slide ${index}" class="slide-image" 
+                                 loading="lazy"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                             <div class="error-message" style="display:none;">
                                 Failed to load image: ${imagePath}
@@ -429,45 +470,79 @@
                         // Create dot indicator
                         const dot = document.createElement('span');
                         dot.className = 'dot';
-                        dot.onclick = () => currentSlide(i);
+                        dot.onclick = () => currentSlide(imageCount);
                         dotContainer.appendChild(dot);
                     } else {
                         consecutiveFailures++;
                         if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
-                            // Stop checking if we've found some images and hit consecutive failures
+                            currentIndex = MAX_SLIDES_TO_CHECK + 1; // Break outer loop
                             break;
                         }
                     }
-                } catch (error) {
-                    console.log(`Error checking image ${i}:`, error);
-                    consecutiveFailures++;
-                    if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
-                        break;
-                    }
+                }
+
+                // Break if we've hit too many consecutive failures
+                if (consecutiveFailures >= maxConsecutiveFailures && imageCount > 0) {
+                    break;
                 }
             }
 
             totalSlides = imageCount;
 
-            // Set first slide as active
+            // Set first slide as active and load its image
             if (totalSlides > 0) {
                 const firstSlide = slidesContainer.querySelector('.slide');
                 const firstDot = dotContainer.querySelector('.dot');
-                if (firstSlide) firstSlide.classList.add('active');
+                if (firstSlide) {
+                    firstSlide.classList.add('active');
+                    loadSlideImage(firstSlide);
+                }
                 if (firstDot) firstDot.classList.add('active');
+
+                // Preload next slide
+                const secondSlide = slidesContainer.querySelectorAll('.slide')[1];
+                if (secondSlide) loadSlideImage(secondSlide);
             }
         }
 
-        function checkImageExists(imagePath) {
+        function checkImageExists(imagePath, index) {
             return new Promise((resolve) => {
                 const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
+                img.onload = () => {
+                    resolve(true);
+                };
+                img.onerror = () => {
+                    resolve(false);
+                };
                 img.src = imagePath;
 
-                // Add timeout to avoid hanging
-                setTimeout(() => resolve(false), 3000);
+                // Reduced timeout from 3s to 1s for faster detection
+                setTimeout(() => resolve(false), 1000);
             });
+        }
+
+        // Lazy load image when slide becomes visible
+        function loadSlideImage(slideElement) {
+            const img = slideElement.querySelector('img[data-src]');
+            if (img && img.hasAttribute('data-src')) {
+                img.src = img.getAttribute('data-src');
+                img.removeAttribute('data-src');
+            }
+        }
+
+        // Preload adjacent slides for smooth navigation
+        function preloadAdjacentSlides(currentIndex) {
+            const slides = document.querySelectorAll('#slidesContainer .slide');
+
+            // Preload previous slide
+            if (currentIndex > 1 && slides[currentIndex - 2]) {
+                loadSlideImage(slides[currentIndex - 2]);
+            }
+
+            // Preload next slide
+            if (currentIndex < totalSlides && slides[currentIndex]) {
+                loadSlideImage(slides[currentIndex]);
+            }
         }
 
         function hideLoadingIndicator() {
@@ -521,12 +596,19 @@
             dots.forEach(dot => dot.classList.remove('active'));
 
             // Show current slide
-            if (slides[index - 1]) slides[index - 1].classList.add('active');
+            if (slides[index - 1]) {
+                slides[index - 1].classList.add('active');
+                // Load current slide image if not already loaded
+                loadSlideImage(slides[index - 1]);
+            }
             if (dots[index - 1]) dots[index - 1].classList.add('active');
 
             // Update counter
             document.getElementById('currentSlide').textContent = index;
             document.getElementById('totalSlides').textContent = totalSlides;
+
+            // Preload adjacent slides for smooth navigation
+            preloadAdjacentSlides(index);
         }
 
         function toggleAutoplay() {
