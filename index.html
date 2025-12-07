@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,47 +12,171 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a365d 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             color: #ffffff;
             min-height: 100vh;
-            overflow-x: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated gradient background */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Floating particles effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20% 30%, rgba(59, 130, 246, 0.3), transparent),
+                radial-gradient(2px 2px at 60% 70%, rgba(96, 165, 250, 0.3), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(147, 197, 253, 0.2), transparent),
+                radial-gradient(1px 1px at 80% 10%, rgba(59, 130, 246, 0.3), transparent),
+                radial-gradient(2px 2px at 90% 60%, rgba(96, 165, 250, 0.2), transparent);
+            background-size: 200% 200%;
+            animation: particleFloat 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes particleFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(10px, -10px);
+            }
+
+            50% {
+                transform: translate(-5px, 5px);
+            }
+
+            75% {
+                transform: translate(5px, 10px);
+            }
         }
 
         .header {
             background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: headerPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes headerPulse {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(10px, 10px) scale(1.1);
+            }
         }
 
         .header h1 {
             font-size: 2.3em;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+            animation: titleFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes titleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
         }
 
         .header p {
             font-size: 1.2em;
             margin-top: 10px;
             opacity: 0.9;
+            position: relative;
+            z-index: 2;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 40px 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .section {
             margin-bottom: 60px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
             padding: 30px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: sectionFadeIn 0.8s ease forwards;
+        }
+
+        @keyframes sectionFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
         }
 
         .section-title {
@@ -60,6 +185,25 @@
             color: #3b82f6;
             text-align: center;
             font-weight: 600;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            transition: width 0.5s ease;
+        }
+
+        .section:hover .section-title::after {
+            width: 60%;
         }
 
         /* Architecture Diagram */
@@ -71,12 +215,25 @@
             padding: 0 10px;
         }
 
+        /* Scroll Progress Indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+            z-index: 9999;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+        }
+
         .component-box {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             border-radius: 15px;
             padding: 25px;
             border: 2px solid #3b82f6;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
             height: 100%;
@@ -85,8 +242,8 @@
         }
 
         .component-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.3);
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.4);
             border-color: #60a5fa;
         }
 
@@ -98,6 +255,24 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .component-box::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.3), transparent);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .component-box:hover::after {
+            width: 300px;
+            height: 300px;
         }
 
         .component-title {
@@ -187,14 +362,15 @@
             font-style: italic;
         }
 
-        /* Power Consumption */
+        /* Power Consumption / Team Grid */
         .power-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
             margin: 40px auto;
-            max-width: 1200px;
+            max-width: 1400px;
             padding: 0 20px;
+            justify-items: center;
         }
 
         .power-component {
@@ -204,9 +380,8 @@
             text-align: center;
             border: 2px solid rgba(59, 130, 246, 0.3);
             transition: all 0.3s ease;
-            margin: 0 auto;
             width: 100%;
-            max-width: 320px;
+            max-width: 280px;
         }
 
         .power-component:hover {
@@ -242,6 +417,25 @@
             opacity: 0.9;
         }
 
+        /* Responsive adjustments for team grid */
+        @media (max-width: 1200px) {
+            .power-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .power-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .power-component {
+                max-width: 320px;
+            }
+        }
+
         /* Connection Lines */
         .connection-diagram {
             position: relative;
@@ -269,8 +463,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .satellite-nodes {
@@ -293,10 +494,29 @@
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
         }
 
-        .node-1 { top: 50px; left: 50%; transform: translateX(-50%); }
-        .node-2 { top: 50%; right: 50px; transform: translateY(-50%); }
-        .node-3 { bottom: 50px; left: 50%; transform: translateX(-50%); }
-        .node-4 { top: 50%; left: 50px; transform: translateY(-50%); }
+        .node-1 {
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .node-2 {
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+        }
+
+        .node-3 {
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .node-4 {
+            top: 50%;
+            left: 50px;
+            transform: translateY(-50%);
+        }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -304,21 +524,21 @@
                 grid-template-columns: 1fr;
                 text-align: center;
             }
-            
+
             .architecture-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .connection-diagram {
                 height: 300px;
             }
-            
+
             .satellite-nodes {
                 width: 60px;
                 height: 60px;
                 font-size: 0.8em;
             }
-            
+
             .central-node {
                 width: 100px;
                 height: 100px;
@@ -326,42 +546,280 @@
             }
         }
 
-        @media (max-width: 1200px) {
-            .power-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 30px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .power-grid {
-                grid-template-columns: 1fr;
-                gap: 25px;
-            }
-            
-            .power-component {
-                max-width: 280px;
-            }
-        }
-
         .footer {
             text-align: center;
             padding: 30px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             margin-top: 50px;
             border-radius: 15px;
             border-top: 3px solid #3b82f6;
         }
+
+        /* Achievement Cards Dynamic Effects */
+        .achievement-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(251, 191, 36, 0.4) !important;
+            border-color: rgba(251, 191, 36, 0.8) !important;
+        }
+
+        .achievement-card:hover .trophy-icon {
+            animation: trophyBounce 0.6s ease;
+        }
+
+        @keyframes trophyBounce {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-10px) rotate(-5deg);
+            }
+
+            50% {
+                transform: translateY(-5px) rotate(5deg);
+            }
+
+            75% {
+                transform: translateY(-8px) rotate(-3deg);
+            }
+        }
+
+        /* Team Member Cards */
+        .power-component {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .power-component:hover {
+            transform: scale(1.08) rotate(2deg);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5) !important;
+        }
+
+        .power-component:hover .profile-picture {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+        }
+
+        .profile-picture {
+            transition: all 0.3s ease;
+        }
+
+        /* Phase Headers and Interactive Elements */
+        .phase-header {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .phase-header:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Glow effect for links */
+        a {
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+        }
+
+        /* Accordion/Details Styles for Four-Pillar Approach */
+        .pillar-accordion {
+            margin-bottom: 20px;
+        }
+
+        .pillar-accordion details {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(30, 64, 175, 0.4) 100%);
+            border-radius: 15px;
+            padding: 0;
+            margin-bottom: 20px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .pillar-accordion details:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        }
+
+        .pillar-accordion details[open] {
+            border-color: #60a5fa;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(30, 64, 175, 0.6) 100%);
+        }
+
+        .pillar-accordion summary {
+            padding: 25px 30px;
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #60a5fa;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .pillar-accordion summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .pillar-accordion summary::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+            color: #3b82f6;
+        }
+
+        .pillar-accordion details[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .pillar-accordion summary:hover {
+            color: #93c5fd;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .pillar-content {
+            padding: 0 30px 30px 30px;
+            font-size: 1.05em;
+            line-height: 1.7;
+            opacity: 0.9;
+            text-align: justify;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+        }
+
+        .pillar-content p {
+            margin-bottom: 15px;
+        }
+
+        .pillar-content strong {
+            color: #93c5fd;
+        }
+
+        .pillar-stage-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pillar-stage-box ul {
+            margin-left: 20px;
+        }
+
+        .pillar-stage-box li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
+
 <body>
     <div class="header">
-        <h1><img src="logo.png" alt="Aerolite Logo" style="height: 2.5em; width: 2.5em; border-radius: 50%; vertical-align: middle; margin-right: 15px; object-fit: cover;"> 🛰️ Hybrid Analog–FPGA Computing Architecture for Space Instruments</h1>
+        <h1><img src="logo.png" alt="Aerolite Logo"
+                style="height: 2.5em; width: 2.5em; border-radius: 50%; vertical-align: middle; margin-right: 15px; object-fit: cover;">
+            🛰️ Hybrid Analog–FPGA Computing Architecture for Space Instruments</h1>
         <p>Analog Speed. Digital Flexibility. Space Ready. </p>
     </div>
 
     <div class="container">
-        <!-- System Architecture -->
+        <!-- Mission Overview -->
+        <div class="section">
+            <h2 class="section-title">🚀 Mission Overview</h2>
+            <div style="font-size: 1.1em; line-height: 1.8; opacity: 0.9; text-align: justify;">
+
+                <h3 style="color: #60a5fa; font-size: 1.3em; margin-bottom: 15px; margin-top: 0;">Mission Context &
+                    Scope</h3>
+                <p style="margin-bottom: 20px;">
+                    The HA-FPGA architecture targets a broad spectrum of satellite missions spanning <strong>Low Earth
+                        Orbit (LEO)</strong>,
+                    <strong>Geostationary Earth Orbit (GEO)</strong>, and <strong>deep space environments</strong>. Our
+                    reference mission
+                    profile encompasses Earth observation satellites operating in LEO orbits with mission durations
+                    extending from multi-year
+                    to multi-decade operations. Contemporary Earth observation missions generate unprecedented volumes
+                    of data through
+                    advanced hyperspectral and multispectral imaging systems, creating a fundamental mismatch between
+                    data generation
+                    and available downlink capacity.
+                </p>
+
+                <h3 style="color: #60a5fa; font-size: 1.3em; margin-bottom: 15px;">The Harsh Space Environment</h3>
+                <p style="margin-bottom: 20px;">
+                    The selected mission environment presents extraordinary challenges that push the limits of
+                    conventional computing
+                    architectures. Satellites must endure <strong>extreme temperature variations</strong> ranging from
+                    deep cryogenic
+                    cold to scorching heat, <strong>intense radiation fields</strong> that can degrade electronics over
+                    time, and
+                    <strong>electromagnetic interference</strong> from solar activity. Electronic systems must operate
+                    reliably for
+                    extended durations—often spanning decades—while maintaining consistent performance across these
+                    harsh environmental
+                    conditions. This demanding operational context requires computing solutions that combine exceptional
+                    reliability,
+                    radiation tolerance, and power efficiency.
+                </p>
+
+                <h3 style="color: #60a5fa; font-size: 1.3em; margin-bottom: 15px;">Why AI Augmentation is Essential</h3>
+                <p style="margin-bottom: 15px;">
+                    The <strong>HA-FPGA (Hybrid Analog-FPGA)</strong> architecture addresses the fundamental data
+                    bottleneck through
+                    intelligent onboard processing. AI augmentation becomes essential for bridging the gap between
+                    massive data generation
+                    and limited downlink capacity. Onboard AI processing enables <strong>intelligent data filtering,
+                        compression, and
+                        prioritization</strong> that can dramatically reduce downlink requirements while preserving
+                    scientific value.
+                </p>
+                <p style="margin-bottom: 15px;">
+                    For example, cloud masking algorithms can eliminate atmospheric obscuration from imagery, reducing
+                    transmitted data
+                    while improving image quality. Beyond data efficiency, AI augmentation enables <strong>autonomous
+                        mission operations</strong>
+                    critical for deep space missions or time-sensitive Earth observation scenarios. Onboard inference
+                    capabilities allow
+                    satellites to autonomously prioritize disaster imagery, detect anomalous events, and adapt mission
+                    parameters without
+                    waiting for ground contact.
+                </p>
+                <p>
+                    The HA-FPGA architecture's analog AI acceleration provides the <strong>power efficiency necessary to
+                        implement these
+                        AI capabilities</strong> within the strict power budgets of small satellite platforms, enabling
+                    AI deployment across
+                    mission classes previously excluded by power constraints. This transforms satellites from passive
+                    data collectors into
+                    <strong>smart, adaptive, and autonomous explorers</strong> capable of making intelligent decisions
+                    in real-time.
+                </p>
+            </div>
+        </div>
+
+        <!-- System Architecture
         <div class="section">
             <h2 class="section-title">🏗️ System Architecture Overview</h2>
             <div class="architecture-grid" style="margin-top: 30px;">
@@ -443,13 +901,336 @@
                     </div>
                 </div>
             </div>
+        </div> -->
+
+        <!-- System Overview -->
+        <div class="section">
+            <h2 class="section-title">🔧 System Overview</h2>
+            <div style="font-size: 1.1em; line-height: 1.8; opacity: 0.9; text-align: justify;">
+                <p style="margin-bottom: 20px;">
+                    <strong>Aerolite</strong> introduces an <strong>AI-enhanced solution</strong> based on a
+                    comprehensive
+                    <strong>Four-Pillar Approach for Mission Optimization</strong>. This innovative architecture
+                    addresses the
+                    fundamental limitations of traditional satellite computing systems through four integrated
+                    technological advances:
+                </p>
+                <div
+                    style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <ol style="margin-left: 20px; line-height: 2;">
+                        <li><strong>Hardware-Level Multi-Tenancy:</strong> Achieving true multi-tenant computing through
+                            silicon-native partitioning rather than software virtualization</li>
+                        <li><strong>Analog AI Acceleration:</strong> Enabling power-efficient onboard AI processing
+                            through Field-Programmable Analog Arrays (FPAA)</li>
+                        <li><strong>Crypto-Agile Reconfigurability:</strong> Providing on-orbit adaptability to evolving
+                            cryptographic threats through hardware reconfiguration</li>
+                        <li><strong>AI-Enabled Digital Twin:</strong> Implementing autonomous fault detection and
+                            self-repair capabilities for extended mission life</li>
+                    </ol>
+                </div>
+                <p>
+                    Together, these four pillars transform satellites from <strong>fixed-purpose instruments</strong>
+                    into
+                    <strong>adaptive, resilient, and sustainable orbital assets</strong> capable of multi-decade
+                    operation with
+                    continuous capability evolution. This paradigm shift addresses critical challenges in power
+                    efficiency,
+                    computational capability, security adaptability, and system reliability.
+                </p>
+            </div>
+        </div>
+
+        <!-- Four-Pillar Approach -->
+        <div class="section">
+            <h2 class="section-title">🏛️ The Four-Pillar Approach</h2>
+            <p style="text-align: center; font-size: 1.1em; opacity: 0.8; margin-bottom: 30px;">
+                Click on each pillar to explore the detailed approach
+            </p>
+
+            <div class="pillar-accordion">
+                <!-- Pillar 1: Hardware-Level Multi-Tenancy -->
+                <details>
+                    <summary>1️. Hardware-Level Multi-Tenancy</summary>
+                    <div class="pillar-content">
+                        <p>
+                            <strong>The Challenge:</strong> Traditional satellite systems rely on software-based
+                            virtualization and containerization to support multiple mission payloads. While companies
+                            like
+                            Unibap have implemented Linux-based SpaceCloud OS with container isolation, these approaches
+                            introduce significant performance penalties through resource contention, context switching
+                            overhead, and hypervisor management costs. Studies show that virtualization can increase CPU
+                            load substantially while bloating application footprints dramatically compared to optimized
+                            implementations.
+                        </p>
+                        <p>
+                            <strong>The Problem:</strong> Software multi-tenancy forces multiple tenants to share the
+                            same
+                            CPUs, memory, and data buses, creating unpredictable performance characteristics. Even with
+                            CPU
+                            pinning, software schedulers introduce timing jitter that compromises real-time processing
+                            requirements. Most critically, virtualization-capable platforms consume power levels far
+                            exceeding
+                            what's available to small CubeSats, fundamentally excluding them from multi-tenant
+                            computing.
+                        </p>
+                        <p>
+                            <strong>The Aerolite Solution:</strong> Our architecture implements <strong>silicon-native
+                                partitioning</strong>—similar to having multiple separate microcontrollers on a single
+                            board,
+                            each dedicated to specific tasks. This hardware-level approach completely eliminates
+                            software
+                            virtualization overhead, enabling true multi-tenant computing feasible for CubeSats with
+                            minimal
+                            power budgets. Each tenant operates in complete isolation with <strong>zero resource
+                                contention</strong> and <strong>deterministic real-time performance</strong>, making
+                            every watt
+                            count toward actual mission work rather than OS overhead.
+                        </p>
+                    </div>
+                </details>
+
+                <!-- Pillar 2: Analog AI Acceleration -->
+                <details>
+                    <summary>2️. Analog AI Acceleration for Onboard Processing</summary>
+                    <div class="pillar-content">
+                        <p>
+                            <strong>The Need:</strong> Small satellites collect vastly more raw data than they can
+                            downlink.
+                            Onboard AI enables spacecraft to filter, compress, and prioritize data—dramatically reducing
+                            downlink volume and cost. Real missions like ESA's Φ-sat-1 have proven this concept, using
+                            CNNs
+                            to mask cloudy scenes before downlink. However, current AI implementations face a
+                            fundamental
+                            trade-off between computational capability and power efficiency.
+                        </p>
+                        <p>
+                            <strong>Building on NASA's Foundation:</strong> NASA and Johns Hopkins APL previously
+                            investigated
+                            Field-Programmable Mixed-Signal Arrays (FPMA) for reconfigurable analog circuits in
+                            spacecraft.
+                            While innovative, the FPMA faced limitations including lack of radiation-hardened processes,
+                            analog
+                            accuracy drift, bandwidth-power trade-offs, and insufficient computational scalability for
+                            modern
+                            AI workloads.
+                        </p>
+                        <p>
+                            <strong>The Aerolite Innovation:</strong> We've evolved NASA's FPMA concept into a <strong>
+                                computational FPAA architecture optimized for AI acceleration</strong>. Our systolic
+                            array-inspired
+                            analog computing fabric features configurable analog multiply-accumulate (MAC) cells
+                            performing
+                            localized matrix operations in parallel. This approach leverages modern CMOS-compatible
+                            analog
+                            fabrics with integrated radiation-hardening, adaptive calibration to mitigate mismatch and
+                            drift,
+                            and energy-efficient mixed-signal pipelines. The result is <strong>dramatic power
+                                reduction</strong>
+                            compared to traditional digital approaches while maintaining computational precision
+                            sufficient for
+                            satellite AI applications.
+                        </p>
+                    </div>
+                </details>
+
+                <!-- Pillar 3: Crypto-Agility via Reconfigurability -->
+                <details>
+                    <summary>3️. Crypto-Agility Through Hardware Reconfigurability</summary>
+                    <div class="pillar-content">
+                        <p>
+                            <strong>The Challenge:</strong> Satellites deployed for extended missions—often lasting
+                            decades—
+                            face the risk of cryptographic obsolescence. During multi-year missions, cryptographic
+                            standards
+                            can become compromised or outdated. Traditional fixed-hardware systems cannot adapt to these
+                            evolving security threats, creating critical vulnerabilities for long-duration space assets.
+                        </p>
+                        <p>
+                            <strong>The Innovation:</strong> Our architecture employs FPGAs and FPAAs as the computing
+                            core,
+                            providing <strong>inherent hardware reconfigurability</strong>. This capability enables
+                            complete
+                            gateware updates from the ground, allowing changes to hardware functionality, implementation
+                            of
+                            new cryptographic algorithms, or responses to emerging security threats—all after launch.
+                        </p>
+                        <p>
+                            <strong>AI-Optimized Transpilation:</strong> The system features an <strong>AI-optimized
+                                Python-to-VHDL transpiler</strong> with machine learning-based architecture selection. A
+                            Random
+                            Forest classifier analyzes cryptographic algorithms and intelligently decides whether to
+                            generate
+                            parallel (faster, more resources) or sequential (slower, area-efficient) hardware
+                            architectures.
+                            This creates a "fast lane" from software implementation to hardware deployment, dramatically
+                            accelerating crypto-agility.
+                        </p>
+                        <p>
+                            <strong>Beyond Crypto-Agility:</strong> Reconfigurability also enables <strong>on-orbit
+                                repurposing</strong> and <strong>dynamic fault recovery</strong>. If a component fails,
+                            the system
+                            can reroute signal paths, bypass defective components, and utilize redundant resources to
+                            continue
+                            operations in degraded mode. Even if a critical instrument fails, the satellite can be
+                            entirely
+                            reconfigured and repurposed for a different mission utilizing remaining functional
+                            subsystems.
+                        </p>
+                    </div>
+                </details>
+
+                <!-- Pillar 4: AI-Enabled Digital Twin -->
+                <details>
+                    <summary>4️. Repairability Through AI-Enabled Digital Twin</summary>
+                    <div class="pillar-content">
+                        <p>
+                            <strong>The Concept:</strong> Digital twin technology creates a virtual counterpart to
+                            physical
+                            subsystems, enabling diagnostic insight and proactivity unattainable with conventional
+                            methods.
+                            Our system embeds <strong>digital twins of satellite subsystems into the FPGA</strong> in
+                            the form
+                            of transfer functions—providing compact mathematical descriptions of input-to-output
+                            relationships
+                            with minimum computational overhead.
+                        </p>
+                        <p>
+                            <strong>Two-Stage Recovery Process:</strong> The system implements an innovative approach
+                            that
+                            maximizes uptime while ensuring efficient hardware resource use:
+                        </p>
+                        <div class="pillar-stage-box">
+                            <p style="margin-bottom: 10px;"><strong>Stage 1 - High-Availability Rapid Recovery:</strong>
+                            </p>
+                            <ul style="margin-bottom: 10px;">
+                                <li>Detect system-wide faults using AI models</li>
+                                <li>Isolate the faulty module immediately</li>
+                                <li>Reimplement functional version on FPGA</li>
+                                <li>Resume normal operations in minimal time</li>
+                            </ul>
+                            <p style="margin-bottom: 10px;"><strong>Stage 2 - Efficient Resource Optimization:</strong>
+                            </p>
+                            <ul>
+                                <li>Perform granular background analysis</li>
+                                <li>Pinpoint exact problematic cells within modules</li>
+                                <li>Optimize resource allocation by isolating only truly faulty cells</li>
+                                <li>Maximize efficient use of limited hardware resources</li>
+                            </ul>
+                        </div>
+                        <p>
+                            <strong>AI Architecture:</strong> The fault detection system uses a <strong>two-tiered 1D
+                                Convolutional Neural Network (CNN)</strong> that first detects the presence of a fault,
+                            then
+                            classifies its type. Through rigorous temporal validation methodology, the system achieves
+                            high
+                            binary fault detection accuracy with perfect precision and exceptional multi-class
+                            classification
+                            accuracy.
+                        </p>
+                        <p>
+                            <strong>The Result:</strong> This approach enables <strong>autonomous fault detection and
+                                repair</strong> with minimal mission downtime, dramatically extending satellite
+                            operational life
+                            compared to traditional systems. The satellite becomes a self-healing platform capable of
+                            decades-long autonomous operation in the harsh space environment.
+                        </p>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Achievements & Recognition -->
+        <div class="section">
+            <h2 class="section-title">🏆 Achievements & Recognition</h2>
+            <p style="text-align: center; font-size: 1.1em; opacity: 0.8; margin-bottom: 40px;">
+                Our innovative approach has been recognized by leading international space competitions
+            </p>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 30px;">
+                <!-- Achievement 1: ACHIEVED Competition -->
+                <div class="achievement-card" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%); 
+                            border-radius: 20px; padding: 35px; border: 2px solid rgba(251, 191, 36, 0.4); 
+                            transition: all 0.3s ease; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">🥈</div>
+                    <div style="position: relative; z-index: 1;">
+                        <div class="trophy-icon" style="font-size: 3em; margin-bottom: 15px; text-align: center;">🥈
+                        </div>
+                        <h3
+                            style="color: #fbbf24; font-size: 1.4em; font-weight: 600; margin-bottom: 15px; text-align: center;">
+                            1st Runner-Up
+                        </h3>
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                            <p style="font-size: 1.1em; line-height: 1.7; margin-bottom: 10px;">
+                                <strong style="color: #fcd34d;">ACHIEVED Competition 2025</strong>
+                            </p>
+                            <p style="font-size: 0.95em; opacity: 0.9; line-height: 1.6;">
+                                Recognized for innovative AI-enhanced hybrid analog-FPGA architecture addressing
+                                critical
+                                challenges in satellite computing, power efficiency, and mission sustainability.
+                            </p>
+                        </div>
+                        <div
+                            style="background: rgba(59, 130, 246, 0.15); padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                            <p style="font-size: 0.95em; line-height: 1.7; margin-bottom: 10px;">
+                                <strong style="color: #60a5fa;">📍 International Presentation</strong>
+                            </p>
+                            <p style="font-size: 0.95em; line-height: 1.7;">
+                                Presented at the <strong>ACHIEVED Competition Grand Final</strong> on
+                                <strong style="color: #93c5fd;">September 28, 2025</strong> at the
+                                <strong>International Convention & Exhibition Center (ICC)</strong>, Sydney, Australia,
+                                before the <strong>International Astronautical Congress (IAC)</strong> to a
+                                distinguished
+                                panel of space sector experts.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievement 2: ISC Destination Award -->
+                <div class="achievement-card" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%); 
+                            border-radius: 20px; padding: 35px; border: 2px solid rgba(251, 191, 36, 0.4); 
+                            transition: all 0.3s ease; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">🏆</div>
+                    <div style="position: relative; z-index: 1;">
+                        <div class="trophy-icon" style="font-size: 3em; margin-bottom: 15px; text-align: center;">🏆
+                        </div>
+                        <h3
+                            style="color: #fbbf24; font-size: 1.4em; font-weight: 600; margin-bottom: 15px; text-align: center;">
+                            Destination Award
+                        </h3>
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                            <p style="font-size: 1.1em; line-height: 1.7; margin-bottom: 10px;">
+                                <strong style="color: #fcd34d;">International Space Competition (ISC) 2025</strong>
+                            </p>
+                            <p style="font-size: 0.95em; opacity: 0.9; line-height: 1.6;">
+                                Awarded for demonstrating transformative potential in advancing space exploration
+                                capabilities
+                                through hardware reconfigurability, analog AI acceleration, and autonomous fault
+                                recovery systems.
+                            </p>
+                        </div>
+                        <div
+                            style="background: rgba(59, 130, 246, 0.15); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                            <p style="font-size: 0.95em; line-height: 1.6;">
+                                <strong style="color: #60a5fa;">🌟 Recognition:</strong><br>
+                                Acknowledged for pioneering approach to sustainable, adaptive satellite computing for
+                                long-duration space missions
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- MRD PRD -->
         <div class="section">
             <h2 class="section-title">🔗 Critical Design Presentation</h2>
             <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
-                <a href="crd.html" class="phase-header" style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
+                <a href="crd.html" class="phase-header"
+                    style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
                     Critical Design Review
                 </a>
             </div>
@@ -459,7 +1240,8 @@
         <div class="section">
             <h2 class="section-title">🔗 System Interconnection Architecture</h2>
             <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
-                <a href="arch.html" class="phase-header" style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
+                <a href="arch.html" class="phase-header"
+                    style="text-decoration: none; cursor: pointer; min-width: 200px; display: inline-block;">
                     Backplane Architecture
                 </a>
             </div>
@@ -602,18 +1384,23 @@
                     <div class="power-label">Informatics Institute of Technology - Sri Lanka</div>
                 </div> -->
             </div>
-            
+
         </div>
     </div>
 
     <div class="footer">
         <p>🛰️ 2025 Project Aerolite. All rights reserved.</p>
-        <p style="opacity: 0.7; margin-top: 10px;">Designed for advanced aerospace instrumentation and mission-critical systems.</p>
+        <p style="opacity: 0.7; margin-top: 10px;">Designed for advanced aerospace instrumentation and mission-critical
+            systems.</p>
+        <p style="margin-top: 15px;">
+            📧 Contact: <a href="mailto:contact@aerolite.space"
+                style="color: #60a5fa; text-decoration: none; transition: color 0.3s ease;">vidurangalanders@gmail.com</a>
+        </p>
     </div>
 
     <script>
         // Add some interactive animations
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Animate component boxes on scroll
             const observerOptions = {
                 threshold: 0.1,
@@ -651,7 +1438,7 @@
             // Power consumption calculator
             const powerComponents = document.querySelectorAll('.power-component');
             powerComponents.forEach(comp => {
-                comp.addEventListener('click', function() {
+                comp.addEventListener('click', function () {
                     this.style.transform = 'scale(1.1)';
                     setTimeout(() => {
                         this.style.transform = 'scale(1.05)';
@@ -659,6 +1446,19 @@
                 });
             });
         });
+
+        // Scroll Progress Indicator
+        window.addEventListener('scroll', () => {
+            const scrollProgress = document.querySelector('.scroll-progress');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPercentage = (scrollTop / scrollHeight) * 100;
+            scrollProgress.style.width = scrollPercentage + '%';
+        });
     </script>
+
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress"></div>
 </body>
+
 </html>
