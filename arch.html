@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satellite Backplane System Architecture</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="arch.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -17,19 +20,19 @@
             <!-- Left Panel - System Interface -->
             <div class="system-interface">
                 <div class="interface-title">System Interface</div>
-                
+
                 <div class="interface-module clickable" data-module="sram">
                     SRAM
                 </div>
-                
+
                 <div class="interface-module clickable" data-module="storage">
                     Secondary<br>Storage
                 </div>
-                
+
                 <div class="interface-module clickable" data-module="eeprom">
                     EEPROM
                 </div>
-                
+
                 <div class="interface-module clickable" data-module="rf">
                     RF<br>Transceiver
                 </div>
@@ -38,7 +41,7 @@
             <!-- Main Backplane -->
             <div class="backplane-container">
                 <div class="backplane-title">Satellite Backplane</div>
-                
+
                 <!-- Top Modules -->
                 <div class="top-modules">
                     <div class="reconfig-handler clickable" data-module="reconfig">
@@ -49,7 +52,7 @@
                             <div class="sub-module">Configuration<br>memory</div>
                         </div>
                     </div>
-                    
+
                     <div class="power-mgmt clickable" data-module="power">
                         <div class="status-indicator"></div>
                         <div class="module-title">Power Management Module</div>
@@ -65,7 +68,7 @@
                 <!-- Hybrid Processing System -->
                 <div class="hybrid-system">
                     <div class="hybrid-title">🔧 Hybrid Processing System</div>
-                    
+
                     <div class="processing-modules">
                         <div class="fpga-module clickable" data-module="fpga">
                             <div class="status-indicator"></div>
@@ -76,7 +79,7 @@
                                 <div class="component">Interface<br>Controller</div>
                             </div>
                         </div>
-                        
+
                         <div class="analog-module clickable" data-module="analog">
                             <div class="status-indicator"></div>
                             <div class="module-title">Analog Compute Module</div>
@@ -99,7 +102,7 @@
                         <strong>SPI/LVDS/UART/I2C</strong><br>
                         (Reconfigurable bus)
                     </div>
-                    
+
                     <div class="payload-interface clickable" data-module="payload">
                         <div class="status-indicator"></div>
                         Payload Interface
@@ -136,7 +139,8 @@
         <!-- System Status Panel -->
         <div class="system-interface" style="margin-top: 30px;">
             <div class="interface-title">System Status</div>
-            <div id="status-display" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; font-family: monospace;">
+            <div id="status-display"
+                style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; font-family: monospace;">
                 <div>System Status: <span style="color: #28a745;">OPERATIONAL</span></div>
                 <div>Active Modules: <span id="active-count">0</span>/9</div>
                 <div>Power Consumption: <span id="power-usage">75W</span></div>
@@ -178,7 +182,7 @@
 
             toggleModule(moduleElement) {
                 const moduleId = moduleElement.dataset.module;
-                
+
                 if (this.activeModules.has(moduleId)) {
                     this.activeModules.delete(moduleId);
                     moduleElement.classList.remove('active');
@@ -194,7 +198,7 @@
             updateStatus() {
                 const activeCount = this.activeModules.size;
                 let totalPower = this.basePower;
-                
+
                 this.activeModules.forEach(moduleId => {
                     totalPower += this.powerConsumption[moduleId] || 0;
                 });
@@ -231,7 +235,7 @@
                     element.addEventListener('mouseenter', () => {
                         element.style.transform = 'scale(1.02) translateY(-2px)';
                     });
-                    
+
                     element.addEventListener('mouseleave', () => {
                         if (!element.classList.contains('active')) {
                             element.style.transform = 'scale(1) translateY(0)';
@@ -244,7 +248,7 @@
         // Initialize system when page loads
         document.addEventListener('DOMContentLoaded', () => {
             new SatelliteSystem();
-            
+
             // Add some initial animation
             setTimeout(() => {
                 document.querySelector('[data-module="fpga"]').click();
@@ -272,4 +276,5 @@
         });
     </script>
 </body>
+
 </html>
